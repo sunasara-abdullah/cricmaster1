@@ -292,11 +292,24 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
               </button>
               <button
                 onClick={onReset}
-                className="col-span-2 aspect-auto rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5"
+                className="aspect-auto rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5"
               >
                 New Match
               </button>
+              <button
+                onClick={saveToProfiles}
+                className={`aspect-auto rounded-lg py-2 text-sm font-bold transition-colors ${
+                  saved
+                    ? "bg-primary/20 text-primary"
+                    : "bg-primary text-primary-foreground hover:bg-primary-hover"
+                }`}
+              >
+                {saved ? "✓ Saved" : "Save Stats"}
+              </button>
             </div>
+            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+              "Save Stats" adds this match to player profiles &amp; lifetime dashboard.
+            </p>
           </section>
         </div>
 
