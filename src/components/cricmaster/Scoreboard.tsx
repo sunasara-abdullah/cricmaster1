@@ -66,7 +66,10 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
     bowlerHistory: [...s.bowlerHistory],
   });
 
-  const push = (next: State) => setHistory((h) => [...h, next]);
+  const push = (next: State) => {
+    setSaved(false);
+    setHistory((h) => [...h, next]);
+  };
 
   const matchOver =
     state.legalBalls >= totalBalls || state.wickets >= state.batters.length + 99; // wickets handled separately
