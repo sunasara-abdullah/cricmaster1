@@ -8,6 +8,7 @@ import {
   runRate,
   strikeRate,
 } from "@/lib/cricket";
+import { commitMatch } from "@/lib/playerStats";
 
 type State = {
   runs: number;
@@ -18,6 +19,8 @@ type State = {
   bowler: Bowler;
   thisOver: string[];
   log: string[];
+  retired: Batter[];
+  bowlerHistory: Bowler[];
 };
 
 const mkBatter = (name: string): Batter => ({
@@ -39,6 +42,8 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
     bowler: { name: config.bowler, balls: 0, runs: 0, wickets: 0 },
     thisOver: [],
     log: [],
+    retired: [],
+    bowlerHistory: [],
   };
 
   const [history, setHistory] = useState<State[]>([init]);
@@ -46,6 +51,7 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
   const [pendingBatter, setPendingBatter] = useState(false);
   const [pendingBowler, setPendingBowler] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [saved, setSaved] = useState(false);
 
   const totalBalls = config.overs * 6;
   const ballsLeft = totalBalls - state.legalBalls;
@@ -56,9 +62,14 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
     bowler: { ...s.bowler },
     thisOver: [...s.thisOver],
     log: [...s.log],
+    retired: [...s.retired],
+    bowlerHistory: [...s.bowlerHistory],
   });
 
-  const push = (next: State) => setHistory((h) => [...h, next]);
+  const push = (next: State) => {
+    setSaved(false);
+    setHistory((h) => [...h, next]);
+  };
 
   const matchOver =
     state.legalBalls >= totalBalls || state.wickets >= state.batters.length + 99; // wickets handled separately
@@ -125,6 +136,7 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
   const confirmBatter = () => {
     const name = nameInput.trim() || "New Batter";
     const s = clone(state);
+    s.retired.push({ ...s.batters[s.strikerIdx] });
     s.batters[s.strikerIdx] = mkBatter(name);
     push(s);
     setPendingBatter(false);
@@ -142,11 +154,33 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
     const name = nameInput.trim();
     if (name) {
       const s = clone(state);
+      if (s.bowler.balls > 0) s.bowlerHistory.push({ ...s.bowler });
       s.bowler = { name, balls: 0, runs: 0, wickets: 0 };
       push(s);
     }
     setPendingBowler(false);
     setNameInput("");
+  };
+
+  const allBatters = (s: State): Batter[] => [...s.retired, ...s.batters];
+  const allBowlers = (s: State): Bowler[] => {
+    const map = new Map<string, Bowler>();
+    for (const bw of [...s.bowlerHistory, s.bowler]) {
+      const ex = map.get(bw.name);
+      if (ex) {
+        ex.balls += bw.balls;
+        ex.runs += bw.runs;
+        ex.wickets += bw.wickets;
+      } else {
+        map.set(bw.name, { ...bw });
+      }
+    }
+    return [...map.values()];
+  };
+
+  const saveToProfiles = () => {
+    commitMatch(allBatters(state), allBowlers(state));
+    setSaved(true);
   };
 
   const undo = () => {
@@ -261,11 +295,24 @@ export function Scoreboard({ config, onReset }: { config: MatchConfig; onReset: 
               </button>
               <button
                 onClick={onReset}
-                className="col-span-2 aspect-auto rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5"
+                className="aspect-auto rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5"
               >
                 New Match
               </button>
+              <button
+                onClick={saveToProfiles}
+                className={`aspect-auto rounded-lg py-2 text-sm font-bold transition-colors ${
+                  saved
+                    ? "bg-primary/20 text-primary"
+                    : "bg-primary text-primary-foreground hover:bg-primary-hover"
+                }`}
+              >
+                {saved ? "✓ Saved" : "Save Stats"}
+              </button>
             </div>
+            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+              "Save Stats" adds this match to player profiles &amp; lifetime dashboard.
+            </p>
           </section>
         </div>
 
