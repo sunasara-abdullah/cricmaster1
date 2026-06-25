@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlayersNameRouteImport } from './routes/players.$name'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -28,34 +29,42 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayersNameRoute = PlayersNameRouteImport.update({
+  id: '/$name',
+  path: '/$name',
+  getParentRoute: () => PlayersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/players': typeof PlayersRoute
+  '/players': typeof PlayersRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/players/$name': typeof PlayersNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/players': typeof PlayersRoute
+  '/players': typeof PlayersRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/players/$name': typeof PlayersNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/players': typeof PlayersRoute
+  '/players': typeof PlayersRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/players/$name': typeof PlayersNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/players' | '/sitemap.xml'
+  fullPaths: '/' | '/players' | '/sitemap.xml' | '/players/$name'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/players' | '/sitemap.xml'
-  id: '__root__' | '/' | '/players' | '/sitemap.xml'
+  to: '/' | '/players' | '/sitemap.xml' | '/players/$name'
+  id: '__root__' | '/' | '/players' | '/sitemap.xml' | '/players/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PlayersRoute: typeof PlayersRoute
+  PlayersRoute: typeof PlayersRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
@@ -82,12 +91,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/players/$name': {
+      id: '/players/$name'
+      path: '/$name'
+      fullPath: '/players/$name'
+      preLoaderRoute: typeof PlayersNameRouteImport
+      parentRoute: typeof PlayersRoute
+    }
   }
 }
 
+interface PlayersRouteChildren {
+  PlayersNameRoute: typeof PlayersNameRoute
+}
+
+const PlayersRouteChildren: PlayersRouteChildren = {
+  PlayersNameRoute: PlayersNameRoute,
+}
+
+const PlayersRouteWithChildren =
+  PlayersRoute._addFileChildren(PlayersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PlayersRoute: PlayersRoute,
+  PlayersRoute: PlayersRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
