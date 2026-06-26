@@ -1,23 +1,36 @@
 import { Link } from "@tanstack/react-router";
 
+const links = [
+  { to: "/", label: "Live Scoring" },
+  { to: "/matches", label: "Matches" },
+  { to: "/players", label: "Players" },
+  { to: "/teams", label: "Teams" },
+  { to: "/leagues", label: "Leagues" },
+] as const;
+
 export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-8">
-          <Link to="/" className="font-heading text-2xl font-bold tracking-tighter text-primary">
+          <Link
+            to="/"
+            className="font-heading text-2xl font-bold tracking-tighter text-primary"
+          >
             CRICMASTER
           </Link>
           <div className="hidden gap-6 text-sm font-medium text-muted-foreground md:flex">
-            <Link to="/" activeProps={{ className: "text-primary" }} className="transition-colors hover:text-foreground">
-              Live Scoring
-            </Link>
-            <Link to="/players" activeProps={{ className: "text-primary" }} className="transition-colors hover:text-foreground">
-              Players
-            </Link>
-            <Link to="/leagues" activeProps={{ className: "text-primary" }} className="transition-colors hover:text-foreground">
-              Leagues
-            </Link>
+            {links.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                activeProps={{ className: "text-primary" }}
+                activeOptions={{ exact: l.to === "/" }}
+                className="transition-colors hover:text-foreground"
+              >
+                {l.label}
+              </Link>
+            ))}
           </div>
         </div>
         <div className="flex items-center gap-4">

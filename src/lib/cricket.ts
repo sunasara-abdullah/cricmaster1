@@ -36,6 +36,17 @@ export type MatchConfig = {
   nonStriker: string;
   bowler: string;
   venue: string;
+  /** number of players per team (used for all-out detection) */
+  playersPerTeam?: number;
+  /** toss winning team name */
+  tossWinner?: string;
+  /** what the toss winner chose to do */
+  tossDecision?: "bat" | "bowl";
+  /** team batting first (derived from toss) */
+  battingFirst?: string;
+  /** optional link back to a league fixture */
+  leagueId?: string;
+  leagueMatchId?: string;
 };
 
 export const strikeRate = (runs: number, balls: number) =>

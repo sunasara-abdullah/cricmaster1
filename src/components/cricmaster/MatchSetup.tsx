@@ -1,23 +1,59 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { MatchConfig } from "@/lib/cricket";
 
-export function MatchSetup({ onStart }: { onStart: (config: MatchConfig) => void }) {
+export function MatchSetup({
+  onStart,
+  initial,
+}: {
+  onStart: (config: MatchConfig) => void;
+  initial?: Partial<MatchConfig>;
+}) {
   const [config, setConfig] = useState<MatchConfig>({
-    teamA: "India",
-    teamB: "Australia",
-    overs: 20,
-    striker: "V. Kohli",
-    nonStriker: "R. Sharma",
-    bowler: "M. Starc",
-    venue: "Wankhede Stadium",
+    teamA: initial?.teamA ?? "India",
+    teamB: initial?.teamB ?? "Australia",
+    overs: initial?.overs ?? 20,
+    striker: "Opener 1",
+    nonStriker: "Opener 2",
+    bowler: "Bowler 1",
+    venue: initial?.venue ?? "Wankhede Stadium",
+    playersPerTeam: 11,
+    tossWinner: initial?.teamA ?? "India",
+    tossDecision: "bat",
+    leagueId: initial?.leagueId,
+    leagueMatchId: initial?.leagueMatchId,
   });
 
   const set = (k: keyof MatchConfig, v: string | number) =>
     setConfig((c) => ({ ...c, [k]: v }));
 
+  const battingFirst = useMemo(() => {
+    const tw = config.tossWinner || config.teamA;
+    const other = tw === config.teamA ? config.teamB : config.teamA;
+    return config.tossDecision === "bat" ? tw : other;
+  }, [config.tossWinner, config.tossDecision, config.teamA, config.teamB]);
+
   const field =
     "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary";
-  const labelCls = "mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground";
+  const labelCls =
+    "mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground";
+
+  const start = () => {
+    const bowlingFirst =
+      battingFirst === config.teamA ? config.teamB : config.teamA;
+    onStart({
+      ...config,
+      battingFirst,
+      // openers always belong to the batting-first side
+      teamA: config.teamA,
+      teamB: config.teamB,
+      // ensure header reflects batting team; Scoreboard uses battingFirst
+      bowler: config.bowler,
+      striker: config.striker,
+      nonStriker: config.nonStriker,
+      // keep bowling side reference
+      ...(bowlingFirst ? {} : {}),
+    });
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
@@ -25,22 +61,36 @@ export function MatchSetup({ onStart }: { onStart: (config: MatchConfig) => void
         <p className="mb-2 text-xs font-medium uppercase tracking-widest text-primary">
           New Match Setup
         </p>
-        <h2 className="font-heading text-4xl font-bold tracking-tight">Start Scoring</h2>
+        <h2 className="font-heading text-4xl font-bold tracking-tight">
+          Start Scoring
+        </h2>
       </div>
 
       <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-2xl">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Batting Team</label>
-            <input className={field} value={config.teamA} onChange={(e) => set("teamA", e.target.value)} />
+            <label className={labelCls}>Team A</label>
+            <input
+              className={field}
+              value={config.teamA}
+              onChange={(e) => {
+                set("teamA", e.target.value);
+                if (config.tossWinner === config.teamA)
+                  set("tossWinner", e.target.value);
+              }}
+            />
           </div>
           <div>
-            <label className={labelCls}>Bowling Team</label>
-            <input className={field} value={config.teamB} onChange={(e) => set("teamB", e.target.value)} />
+            <label className={labelCls}>Team B</label>
+            <input
+              className={field}
+              value={config.teamB}
+              onChange={(e) => set("teamB", e.target.value)}
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className={labelCls}>Overs</label>
             <input
@@ -53,29 +103,94 @@ export function MatchSetup({ onStart }: { onStart: (config: MatchConfig) => void
             />
           </div>
           <div>
-            <label className={labelCls}>Venue</label>
-            <input className={field} value={config.venue} onChange={(e) => set("venue", e.target.value)} />
+            <label className={labelCls}>Players / Team</label>
+            <input
+              type="number"
+              min={2}
+              max={15}
+              className={field}
+              value={config.playersPerTeam}
+              onChange={(e) =>
+                set("playersPerTeam", Math.max(2, Number(e.target.value)))
+              }
+            />
           </div>
+          <div>
+            <label className={labelCls}>Venue</label>
+            <input
+              className={field}
+              value={config.venue}
+              onChange={(e) => set("venue", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-primary">
+            Toss
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Toss Won By</label>
+              <select
+                className={field}
+                value={config.tossWinner}
+                onChange={(e) => set("tossWinner", e.target.value)}
+              >
+                <option value={config.teamA}>{config.teamA}</option>
+                <option value={config.teamB}>{config.teamB}</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Elected To</label>
+              <select
+                className={field}
+                value={config.tossDecision}
+                onChange={(e) =>
+                  set("tossDecision", e.target.value as "bat" | "bowl")
+                }
+              >
+                <option value="bat">Bat first</option>
+                <option value="bowl">Bowl first</option>
+              </select>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            <strong className="text-foreground">{battingFirst}</strong> will bat
+            first.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Striker</label>
-            <input className={field} value={config.striker} onChange={(e) => set("striker", e.target.value)} />
+            <label className={labelCls}>Striker ({battingFirst})</label>
+            <input
+              className={field}
+              value={config.striker}
+              onChange={(e) => set("striker", e.target.value)}
+            />
           </div>
           <div>
             <label className={labelCls}>Non-Striker</label>
-            <input className={field} value={config.nonStriker} onChange={(e) => set("nonStriker", e.target.value)} />
+            <input
+              className={field}
+              value={config.nonStriker}
+              onChange={(e) => set("nonStriker", e.target.value)}
+            />
           </div>
         </div>
 
         <div>
           <label className={labelCls}>Opening Bowler</label>
-          <input className={field} value={config.bowler} onChange={(e) => set("bowler", e.target.value)} />
+          <input
+            className={field}
+            value={config.bowler}
+            onChange={(e) => set("bowler", e.target.value)}
+          />
         </div>
 
         <button
-          onClick={() => onStart(config)}
+          onClick={start}
           className="w-full rounded-xl bg-primary py-3.5 font-heading text-lg font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
         >
           Start Match

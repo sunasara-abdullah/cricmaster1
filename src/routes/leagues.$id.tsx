@@ -3,20 +3,28 @@ import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import {
   type League,
+  type MatchStage,
+  type ScheduledMatch,
   getLeague,
   addTeam,
   removeTeam,
   addMatch,
   updateMatch,
   removeMatch,
+  setMatchStage,
+  computeStandings,
 } from "@/lib/leagues";
 
+const FIXTURE_KEY = "cricmaster:pendingFixture";
+
 export const Route = createFileRoute("/leagues/$id")({
-  head: () => ({
-    meta: [{ title: "League — CricMaster" }],
-  }),
+  head: () => ({ meta: [{ title: "League — CricMaster" }] }),
   component: LeagueDetailPage,
-  notFoundComponent: () => (
+  notFoundComponent: NotFound,
+});
+
+function NotFound() {
+  return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-3xl px-4 py-20 text-center">
@@ -26,8 +34,8 @@ export const Route = createFileRoute("/leagues/$id")({
         </Link>
       </main>
     </div>
-  ),
-});
+  );
+}
 
 function useLeague(id: string): League | undefined {
   const [league, setLeague] = useState<League | undefined>(undefined);
@@ -48,24 +56,12 @@ function LeagueDetailPage() {
   const { id } = Route.useParams();
   const league = useLeague(id);
 
-  if (!league) {
-    return (
-      <div className="min-h-screen bg-background text-foreground">
-        <Navbar />
-        <main className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <p className="text-lg font-medium">League not found</p>
-          <Link to="/leagues" className="mt-4 inline-block text-primary">
-            Back to leagues
-          </Link>
-        </main>
-      </div>
-    );
-  }
+  if (!league) return <NotFound />;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         <Link
           to="/leagues"
           className="text-sm text-muted-foreground hover:text-foreground"
@@ -81,12 +77,114 @@ function LeagueDetailPage() {
           </h1>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        <StandingsPanel league={league} />
+        <PlayoffsPanel league={league} />
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
           <TeamsPanel league={league} />
           <SchedulePanel league={league} />
         </div>
       </main>
     </div>
+  );
+}
+
+function StandingsPanel({ league }: { league: League }) {
+  const standings = useMemo(() => computeStandings(league), [league]);
+  if (league.teams.length === 0) return null;
+  return (
+    <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="border-b border-border bg-white/[0.02] px-5 py-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Points Table
+        </h2>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <th className="px-4 py-2 font-bold">Team</th>
+              <th className="px-2 py-2 text-right font-bold">P</th>
+              <th className="px-2 py-2 text-right font-bold">W</th>
+              <th className="px-2 py-2 text-right font-bold">L</th>
+              <th className="px-2 py-2 text-right font-bold">T</th>
+              <th className="px-2 py-2 text-right font-bold">Pts</th>
+              <th className="px-4 py-2 text-right font-bold">NRR</th>
+            </tr>
+          </thead>
+          <tbody>
+            {standings.map((s, i) => (
+              <tr key={s.team} className="border-b border-border/50">
+                <td className="px-4 py-2 font-medium">
+                  <span className="mr-2 text-muted-foreground">{i + 1}</span>
+                  {s.team}
+                </td>
+                <td className="px-2 py-2 text-right text-muted-foreground">
+                  {s.played}
+                </td>
+                <td className="px-2 py-2 text-right text-primary">{s.won}</td>
+                <td className="px-2 py-2 text-right text-muted-foreground">
+                  {s.lost}
+                </td>
+                <td className="px-2 py-2 text-right text-muted-foreground">
+                  {s.tied}
+                </td>
+                <td className="px-2 py-2 text-right font-bold">{s.points}</td>
+                <td className="px-4 py-2 text-right text-muted-foreground">
+                  {s.nrr >= 0 ? "+" : ""}
+                  {s.nrr.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+const STAGE_LABEL: Record<MatchStage, string> = {
+  group: "Group",
+  qualifier: "Qualifier",
+  semi: "Semi-Final",
+  final: "Final",
+};
+
+function PlayoffsPanel({ league }: { league: League }) {
+  const playoffs = league.matches.filter((m) => m.stage && m.stage !== "group");
+  if (playoffs.length === 0) return null;
+  const order: MatchStage[] = ["qualifier", "semi", "final"];
+  const sorted = [...playoffs].sort(
+    (a, b) => order.indexOf(a.stage!) - order.indexOf(b.stage!),
+  );
+  return (
+    <section className="mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-primary/5">
+      <div className="border-b border-primary/20 px-5 py-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-primary">
+          Playoff Bracket
+        </h2>
+      </div>
+      <div className="grid gap-3 p-5 sm:grid-cols-3">
+        {sorted.map((m) => (
+          <div
+            key={m.id}
+            className="rounded-xl border border-border bg-card p-4 text-center"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
+              {STAGE_LABEL[m.stage!]}
+            </p>
+            <p className="mt-2 font-heading text-lg font-bold">
+              {m.homeTeam}
+            </p>
+            <p className="text-xs text-muted-foreground">vs</p>
+            <p className="font-heading text-lg font-bold">{m.awayTeam}</p>
+            {m.status === "completed" && m.result && (
+              <p className="mt-2 text-xs font-medium text-primary">{m.result}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -126,7 +224,13 @@ function TeamsPanel({ league }: { league: League }) {
               key={t}
               className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-sm"
             >
-              <span className="font-medium">{t}</span>
+              <Link
+                to="/teams/$name"
+                params={{ name: t }}
+                className="font-medium hover:text-primary"
+              >
+                {t}
+              </Link>
               <button
                 onClick={() => removeTeam(league.id, t)}
                 className="text-xs text-muted-foreground hover:text-destructive"
@@ -147,6 +251,7 @@ function SchedulePanel({ league }: { league: League }) {
   const [away, setAway] = useState("");
   const [date, setDate] = useState("");
   const [venue, setVenue] = useState("");
+  const [stage, setStage] = useState<MatchStage>("group");
 
   const canAdd = league.teams.length >= 2;
   const sorted = useMemo(
@@ -157,11 +262,25 @@ function SchedulePanel({ league }: { league: League }) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!home || !away || home === away || !date) return;
-    addMatch(league.id, { homeTeam: home, awayTeam: away, date, venue });
+    addMatch(league.id, { homeTeam: home, awayTeam: away, date, venue, stage });
     setHome("");
     setAway("");
     setDate("");
     setVenue("");
+    setStage("group");
+  };
+
+  const scoreMatch = (m: ScheduledMatch) => {
+    const fixture = {
+      teamA: m.homeTeam,
+      teamB: m.awayTeam,
+      venue: m.venue || "",
+      overs: 20,
+      leagueId: league.id,
+      leagueMatchId: m.id,
+    };
+    window.localStorage.setItem(FIXTURE_KEY, JSON.stringify(fixture));
+    router.navigate({ to: "/" });
   };
 
   return (
@@ -211,6 +330,16 @@ function SchedulePanel({ league }: { league: League }) {
             placeholder="Venue (optional)"
             className="rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
+          <select
+            value={stage}
+            onChange={(e) => setStage(e.target.value as MatchStage)}
+            className="rounded-lg border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary sm:col-span-2"
+          >
+            <option value="group">League / Group game</option>
+            <option value="qualifier">Qualifier</option>
+            <option value="semi">Semi-Final</option>
+            <option value="final">Final</option>
+          </select>
           <button
             type="submit"
             className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary-hover sm:col-span-2"
@@ -236,9 +365,13 @@ function SchedulePanel({ league }: { league: League }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <div className="font-heading text-lg font-bold">
-                    {m.homeTeam}{" "}
-                    <span className="text-muted-foreground">vs</span>{" "}
+                    {m.homeTeam} <span className="text-muted-foreground">vs</span>{" "}
                     {m.awayTeam}
+                    {m.stage && m.stage !== "group" && (
+                      <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary">
+                        {STAGE_LABEL[m.stage]}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-0.5 text-xs text-muted-foreground">
                     {m.date
@@ -273,7 +406,7 @@ function SchedulePanel({ league }: { league: League }) {
                 {m.status === "scheduled" ? (
                   <>
                     <button
-                      onClick={() => router.navigate({ to: "/" })}
+                      onClick={() => scoreMatch(m)}
                       className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover"
                     >
                       Score Match
@@ -281,9 +414,7 @@ function SchedulePanel({ league }: { league: League }) {
                     <button
                       onClick={() => {
                         const result = prompt(
-                          "Enter result (e.g. " +
-                            m.homeTeam +
-                            " won by 5 wickets):",
+                          `Enter result (e.g. ${m.homeTeam} won by 5 wickets):`,
                         );
                         if (result !== null)
                           updateMatch(league.id, m.id, {
@@ -297,17 +428,46 @@ function SchedulePanel({ league }: { league: League }) {
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() =>
-                      updateMatch(league.id, m.id, {
-                        status: "scheduled",
-                        result: "",
-                      })
+                  <>
+                    {m.matchRecordId && (
+                      <Link
+                        to="/matches/$id"
+                        params={{ id: m.matchRecordId }}
+                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover"
+                      >
+                        Scorecard
+                      </Link>
+                    )}
+                    <button
+                      onClick={() =>
+                        updateMatch(league.id, m.id, {
+                          status: "scheduled",
+                          result: "",
+                        })
+                      }
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-primary"
+                    >
+                      Reopen
+                    </button>
+                  </>
+                )}
+                {m.stage !== "group" && m.status === "scheduled" && (
+                  <select
+                    value={m.stage ?? "group"}
+                    onChange={(e) =>
+                      setMatchStage(
+                        league.id,
+                        m.id,
+                        e.target.value as MatchStage,
+                      )
                     }
-                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:border-primary"
+                    className="rounded-lg border border-border bg-card px-2 py-1.5 text-xs outline-none"
                   >
-                    Reopen
-                  </button>
+                    <option value="group">Group</option>
+                    <option value="qualifier">Qualifier</option>
+                    <option value="semi">Semi</option>
+                    <option value="final">Final</option>
+                  </select>
                 )}
                 <button
                   onClick={() => removeMatch(league.id, m.id)}

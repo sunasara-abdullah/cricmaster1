@@ -10,6 +10,8 @@ import {
   bowlingAverage,
   bowlingEcon,
   bestFigures,
+  computeBadges,
+  setPlayerPhoto,
 } from "@/lib/playerStats";
 
 export const Route = createFileRoute("/players/$name")({
@@ -25,6 +27,15 @@ export const Route = createFileRoute("/players/$name")({
   component: ProfilePage,
 });
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result as string);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
 function ProfilePage() {
   const { name } = Route.useParams();
   const [player, setPlayer] = useState<PlayerProfile | undefined>(undefined);
@@ -39,6 +50,13 @@ function ProfilePage() {
     window.addEventListener("cricmaster:stats-updated", sync);
     return () => window.removeEventListener("cricmaster:stats-updated", sync);
   }, [name]);
+
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const url = await fileToDataUrl(f);
+    setPlayerPhoto(name, url);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -58,14 +76,45 @@ function ProfilePage() {
         ) : player ? (
           <>
             <header className="mb-8 mt-4 flex items-center gap-4">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground">
-                {player.name.charAt(0).toUpperCase()}
-              </div>
+              {player.photo ? (
+                <img
+                  src={player.photo}
+                  alt={player.name}
+                  className="size-16 rounded-2xl object-cover"
+                />
+              ) : (
+                <div className="flex size-16 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground">
+                  {player.name.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div>
                 <h1 className="font-heading text-3xl font-bold tracking-tight">{player.name}</h1>
                 <p className="text-sm text-muted-foreground">{player.matches} matches played</p>
+                <label className="mt-1 inline-block cursor-pointer text-xs text-primary hover:underline">
+                  Upload photo
+                  <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
+                </label>
               </div>
             </header>
+
+            {computeBadges(player).length > 0 && (
+              <section className="mb-6 flex flex-wrap gap-2">
+                {computeBadges(player).map((b) => (
+                  <span
+                    key={b.label}
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${
+                      b.tone === "gold"
+                        ? "bg-primary/15 text-primary"
+                        : b.tone === "blue"
+                          ? "bg-secondary text-foreground"
+                          : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    🏅 {b.label}
+                  </span>
+                ))}
+              </section>
+            )}
 
             <section className="mb-6">
               <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
