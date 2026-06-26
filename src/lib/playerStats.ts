@@ -28,6 +28,7 @@ export type PlayerProfile = {
   batting: BattingStats;
   bowling: BowlingStats;
   lastPlayed: string;
+  photo?: string; // data URL or remote URL
 };
 
 export type StatsStore = Record<string, PlayerProfile>;
@@ -154,3 +155,36 @@ export const bowlingEcon = (b: BowlingStats) =>
 
 export const bestFigures = (b: BowlingStats) =>
   b.best.wickets < 0 ? "—" : `${b.best.wickets}/${b.best.runs}`;
+
+const slugName = (n: string) => n.trim().toLowerCase();
+
+export const setPlayerPhoto = (name: string, photo: string) => {
+  const store = loadStats();
+  const p = ensure(store, name);
+  p.photo = photo;
+  saveStats(store);
+};
+
+export type Badge = { label: string; tone: "gold" | "blue" | "green" };
+
+export const computeBadges = (p: PlayerProfile): Badge[] => {
+  const badges: Badge[] = [];
+  if (p.batting.hundreds > 0)
+    badges.push({ label: `${p.batting.hundreds}× Century`, tone: "gold" });
+  if (p.batting.fifties > 0)
+    badges.push({ label: `${p.batting.fifties}× Fifty`, tone: "blue" });
+  if (p.batting.runs >= 1000)
+    badges.push({ label: "1000+ Runs Club", tone: "gold" });
+  if (p.bowling.best.wickets >= 5)
+    badges.push({ label: "Five-Wicket Haul", tone: "gold" });
+  if (p.bowling.wickets >= 50)
+    badges.push({ label: "50+ Wickets Club", tone: "green" });
+  if (p.batting.sixes >= 20)
+    badges.push({ label: "Six Machine", tone: "blue" });
+  if (p.matches >= 25)
+    badges.push({ label: "Veteran (25+ matches)", tone: "green" });
+  return badges;
+};
+
+// re-export to satisfy unused import guard awareness
+void slugName;
