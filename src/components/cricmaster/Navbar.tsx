@@ -15,6 +15,9 @@ export function Navbar() {
             <Link to="/players" activeProps={{ className: "text-primary" }} className="transition-colors hover:text-foreground">
               Players
             </Link>
+            <Link to="/leagues" activeProps={{ className: "text-primary" }} className="transition-colors hover:text-foreground">
+              Leagues
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-4">
