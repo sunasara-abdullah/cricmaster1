@@ -14,6 +14,7 @@ import { Route as PlayersRouteImport } from './routes/players'
 import { Route as LeaguesRouteImport } from './routes/leagues'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlayersNameRouteImport } from './routes/players.$name'
+import { Route as LeaguesIdRouteImport } from './routes/leagues.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -40,46 +41,67 @@ const PlayersNameRoute = PlayersNameRouteImport.update({
   path: '/$name',
   getParentRoute: () => PlayersRoute,
 } as any)
+const LeaguesIdRoute = LeaguesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LeaguesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/leagues': typeof LeaguesRoute
+  '/leagues': typeof LeaguesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/leagues/$id': typeof LeaguesIdRoute
   '/players/$name': typeof PlayersNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/leagues': typeof LeaguesRoute
+  '/leagues': typeof LeaguesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/leagues/$id': typeof LeaguesIdRoute
   '/players/$name': typeof PlayersNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/leagues': typeof LeaguesRoute
+  '/leagues': typeof LeaguesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/leagues/$id': typeof LeaguesIdRoute
   '/players/$name': typeof PlayersNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/leagues' | '/players' | '/sitemap.xml' | '/players/$name'
+  fullPaths:
+    | '/'
+    | '/leagues'
+    | '/players'
+    | '/sitemap.xml'
+    | '/leagues/$id'
+    | '/players/$name'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/leagues' | '/players' | '/sitemap.xml' | '/players/$name'
+  to:
+    | '/'
+    | '/leagues'
+    | '/players'
+    | '/sitemap.xml'
+    | '/leagues/$id'
+    | '/players/$name'
   id:
     | '__root__'
     | '/'
     | '/leagues'
     | '/players'
     | '/sitemap.xml'
+    | '/leagues/$id'
     | '/players/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LeaguesRoute: typeof LeaguesRoute
+  LeaguesRoute: typeof LeaguesRouteWithChildren
   PlayersRoute: typeof PlayersRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
@@ -121,8 +143,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayersNameRouteImport
       parentRoute: typeof PlayersRoute
     }
+    '/leagues/$id': {
+      id: '/leagues/$id'
+      path: '/$id'
+      fullPath: '/leagues/$id'
+      preLoaderRoute: typeof LeaguesIdRouteImport
+      parentRoute: typeof LeaguesRoute
+    }
   }
 }
+
+interface LeaguesRouteChildren {
+  LeaguesIdRoute: typeof LeaguesIdRoute
+}
+
+const LeaguesRouteChildren: LeaguesRouteChildren = {
+  LeaguesIdRoute: LeaguesIdRoute,
+}
+
+const LeaguesRouteWithChildren =
+  LeaguesRoute._addFileChildren(LeaguesRouteChildren)
 
 interface PlayersRouteChildren {
   PlayersNameRoute: typeof PlayersNameRoute
@@ -137,7 +177,7 @@ const PlayersRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  LeaguesRoute: LeaguesRoute,
+  LeaguesRoute: LeaguesRouteWithChildren,
   PlayersRoute: PlayersRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
