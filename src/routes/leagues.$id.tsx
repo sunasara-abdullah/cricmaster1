@@ -5,6 +5,7 @@ import {
   type League,
   type MatchStage,
   type ScheduledMatch,
+  type PointsRules,
   getLeague,
   addTeam,
   removeTeam,
@@ -13,6 +14,8 @@ import {
   removeMatch,
   setMatchStage,
   computeStandings,
+  getPointsRules,
+  updatePointsRules,
 } from "@/lib/leagues";
 
 const FIXTURE_KEY = "cricmaster:pendingFixture";
@@ -78,6 +81,7 @@ function LeagueDetailPage() {
         </header>
 
         <StandingsPanel league={league} />
+        <PointsRulesPanel league={league} />
         <PlayoffsPanel league={league} />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
