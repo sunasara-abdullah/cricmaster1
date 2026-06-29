@@ -171,6 +171,31 @@ export type Standing = {
   runsAgainst: number;
   ballsAgainst: number;
   nrr: number;
+  /** human-readable explanation of why this team ranks above the next one */
+  reason?: string;
+};
+
+/** Head-to-head points between two teams across completed group games */
+const headToHead = (league: League, a: string, b: string): number => {
+  let pa = 0;
+  let pb = 0;
+  for (const m of league.matches) {
+    if (m.status !== "completed") continue;
+    if (m.stage && m.stage !== "group") continue;
+    const isAB =
+      (m.homeTeam === a && m.awayTeam === b) ||
+      (m.homeTeam === b && m.awayTeam === a);
+    if (!isAB) continue;
+    if (!m.winner || m.winner === "tie") {
+      pa += 1;
+      pb += 1;
+    } else if (m.winner === a) {
+      pa += 2;
+    } else if (m.winner === b) {
+      pb += 2;
+    }
+  }
+  return pa - pb;
 };
 
 export const computeStandings = (league: League): Standing[] => {
@@ -227,7 +252,28 @@ export const computeStandings = (league: League): Standing[] => {
   for (const s of Object.values(table)) {
     s.nrr = rr(s.runsFor, s.ballsFor) - rr(s.runsAgainst, s.ballsAgainst);
   }
-  return Object.values(table).sort(
-    (a, b) => b.points - a.points || b.nrr - a.nrr,
-  );
+  const sorted = Object.values(table).sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.won !== a.won) return b.won - a.won;
+    const h2h = headToHead(league, a.team, b.team);
+    if (h2h !== 0) return -h2h;
+    if (b.nrr !== a.nrr) return b.nrr - a.nrr;
+    return a.team.localeCompare(b.team);
+  });
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const a = sorted[i];
+    const b = sorted[i + 1];
+    if (a.points !== b.points) {
+      a.reason = `Ahead on points (${a.points} vs ${b.points})`;
+    } else if (a.won !== b.won) {
+      a.reason = `Level on points — more wins (${a.won} vs ${b.won})`;
+    } else if (headToHead(league, a.team, b.team) > 0) {
+      a.reason = `Level on points — won head-to-head vs ${b.team}`;
+    } else if (a.nrr !== b.nrr) {
+      a.reason = `Level on points — better NRR (${a.nrr >= 0 ? "+" : ""}${a.nrr.toFixed(2)} vs ${b.nrr >= 0 ? "+" : ""}${b.nrr.toFixed(2)})`;
+    } else {
+      a.reason = "Level on all tiebreakers — ordered alphabetically";
+    }
+  }
+  return sorted;
 };
