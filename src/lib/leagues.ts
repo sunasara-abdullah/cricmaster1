@@ -200,10 +200,13 @@ export type Standing = {
   nrr: number;
   /** human-readable explanation of why this team ranks above the next one */
   reason?: string;
+  /** bonus points earned from dominant wins */
+  bonus: number;
 };
 
 /** Head-to-head points between two teams across completed group games */
 const headToHead = (league: League, a: string, b: string): number => {
+  const rules = getPointsRules(league);
   let pa = 0;
   let pb = 0;
   for (const m of league.matches) {
@@ -214,18 +217,19 @@ const headToHead = (league: League, a: string, b: string): number => {
       (m.homeTeam === b && m.awayTeam === a);
     if (!isAB) continue;
     if (!m.winner || m.winner === "tie") {
-      pa += 1;
-      pb += 1;
+      pa += rules.draw;
+      pb += rules.draw;
     } else if (m.winner === a) {
-      pa += 2;
+      pa += rules.win;
     } else if (m.winner === b) {
-      pb += 2;
+      pb += rules.win;
     }
   }
   return pa - pb;
 };
 
 export const computeStandings = (league: League): Standing[] => {
+  const rules = getPointsRules(league);
   const table: Record<string, Standing> = {};
   for (const t of league.teams) {
     table[t] = {
@@ -240,8 +244,11 @@ export const computeStandings = (league: League): Standing[] => {
       runsAgainst: 0,
       ballsAgainst: 0,
       nrr: 0,
+      bonus: 0,
     };
   }
+  const matchRR = (runs: number, balls: number) =>
+    balls ? runs / (balls / 6) : 0;
   for (const m of league.matches) {
     if (m.status !== "completed") continue;
     if (m.stage && m.stage !== "group") continue; // only league/group games count
@@ -260,19 +267,38 @@ export const computeStandings = (league: League): Standing[] => {
       away.ballsFor += m.awayBalls ?? 0;
       away.ballsAgainst += m.homeBalls ?? 0;
     }
+    // bonus point for a dominant win (winner's run rate >= factor × loser's)
+    const awardBonus = (winnerKey: "home" | "away") => {
+      if (!rules.bonusEnabled) return;
+      if (typeof m.homeRuns !== "number" || typeof m.awayRuns !== "number")
+        return;
+      const homeRRate = matchRR(m.homeRuns, m.homeBalls ?? 0);
+      const awayRRate = matchRR(m.awayRuns, m.awayBalls ?? 0);
+      const winRRate = winnerKey === "home" ? homeRRate : awayRRate;
+      const loseRRate = winnerKey === "home" ? awayRRate : homeRRate;
+      if (loseRRate > 0 && winRRate >= rules.bonusRunRateFactor * loseRRate) {
+        const target = winnerKey === "home" ? home : away;
+        target.bonus += 1;
+        target.points += 1;
+      }
+    };
     if (!m.winner || m.winner === "tie") {
       home.tied += 1;
       away.tied += 1;
-      home.points += 1;
-      away.points += 1;
+      home.points += rules.draw;
+      away.points += rules.draw;
     } else if (m.winner === m.homeTeam) {
       home.won += 1;
-      home.points += 2;
+      home.points += rules.win;
       away.lost += 1;
+      away.points += rules.loss;
+      awardBonus("home");
     } else {
       away.won += 1;
-      away.points += 2;
+      away.points += rules.win;
       home.lost += 1;
+      home.points += rules.loss;
+      awardBonus("away");
     }
   }
   const rr = (runs: number, balls: number) => (balls ? runs / (balls / 6) : 0);
