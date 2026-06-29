@@ -98,6 +98,9 @@ function StandingsPanel({ league }: { league: League }) {
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           Points Table
         </h2>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Tiebreakers: Points → Wins → Head-to-head → Net Run Rate
+        </p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -110,6 +113,7 @@ function StandingsPanel({ league }: { league: League }) {
               <th className="px-2 py-2 text-right font-bold">T</th>
               <th className="px-2 py-2 text-right font-bold">Pts</th>
               <th className="px-4 py-2 text-right font-bold">NRR</th>
+              <th className="px-4 py-2 text-left font-bold">Ranking Reason</th>
             </tr>
           </thead>
           <tbody>
@@ -133,6 +137,9 @@ function StandingsPanel({ league }: { league: League }) {
                 <td className="px-4 py-2 text-right text-muted-foreground">
                   {s.nrr >= 0 ? "+" : ""}
                   {s.nrr.toFixed(2)}
+                </td>
+                <td className="px-4 py-2 text-left text-xs text-muted-foreground">
+                  {s.reason ?? "—"}
                 </td>
               </tr>
             ))}
