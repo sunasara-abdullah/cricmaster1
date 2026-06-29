@@ -30,9 +30,36 @@ export type League = {
   teams: string[];
   matches: ScheduledMatch[];
   createdAt: string;
+  pointsRules?: PointsRules;
 };
 
 export type LeagueStore = Record<string, League>;
+
+export type PointsRules = {
+  /** points for a win */
+  win: number;
+  /** points for a tie / no result */
+  draw: number;
+  /** points for a loss */
+  loss: number;
+  /** enable an extra bonus point for dominant wins */
+  bonusEnabled: boolean;
+  /** winner gets a bonus point if its run rate >= this factor × opponent's run rate */
+  bonusRunRateFactor: number;
+};
+
+export const DEFAULT_POINTS_RULES: PointsRules = {
+  win: 2,
+  draw: 1,
+  loss: 0,
+  bonusEnabled: false,
+  bonusRunRateFactor: 1.25,
+};
+
+export const getPointsRules = (league: League): PointsRules => ({
+  ...DEFAULT_POINTS_RULES,
+  ...(league.pointsRules ?? {}),
+});
 
 const uid = () =>
   `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
