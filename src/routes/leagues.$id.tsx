@@ -5,6 +5,7 @@ import {
   type League,
   type MatchStage,
   type ScheduledMatch,
+  type PointsRules,
   getLeague,
   addTeam,
   removeTeam,
@@ -13,6 +14,8 @@ import {
   removeMatch,
   setMatchStage,
   computeStandings,
+  getPointsRules,
+  updatePointsRules,
 } from "@/lib/leagues";
 
 const FIXTURE_KEY = "cricmaster:pendingFixture";
@@ -78,6 +81,7 @@ function LeagueDetailPage() {
         </header>
 
         <StandingsPanel league={league} />
+        <PointsRulesPanel league={league} />
         <PlayoffsPanel league={league} />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -111,6 +115,7 @@ function StandingsPanel({ league }: { league: League }) {
               <th className="px-2 py-2 text-right font-bold">W</th>
               <th className="px-2 py-2 text-right font-bold">L</th>
               <th className="px-2 py-2 text-right font-bold">T</th>
+              <th className="px-2 py-2 text-right font-bold">Bonus</th>
               <th className="px-2 py-2 text-right font-bold">Pts</th>
               <th className="px-4 py-2 text-right font-bold">NRR</th>
               <th className="px-4 py-2 text-left font-bold">Ranking Reason</th>
@@ -132,6 +137,9 @@ function StandingsPanel({ league }: { league: League }) {
                 </td>
                 <td className="px-2 py-2 text-right text-muted-foreground">
                   {s.tied}
+                </td>
+                <td className="px-2 py-2 text-right text-muted-foreground">
+                  {s.bonus}
                 </td>
                 <td className="px-2 py-2 text-right font-bold">{s.points}</td>
                 <td className="px-4 py-2 text-right text-muted-foreground">
@@ -156,6 +164,124 @@ const STAGE_LABEL: Record<MatchStage, string> = {
   semi: "Semi-Final",
   final: "Final",
 };
+
+function PointsRulesPanel({ league }: { league: League }) {
+  const current = getPointsRules(league);
+  const [rules, setRules] = useState<PointsRules>(current);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setRules(getPointsRules(league));
+  }, [league]);
+
+  const set = (patch: Partial<PointsRules>) =>
+    setRules((r) => ({ ...r, ...patch }));
+
+  const save = () => {
+    updatePointsRules(league.id, rules);
+    setOpen(false);
+  };
+
+  return (
+    <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between border-b border-border bg-white/[0.02] px-5 py-3 text-left"
+      >
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Points Rules
+          </h2>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Win {current.win} · Draw {current.draw} · Loss {current.loss}
+            {current.bonusEnabled
+              ? ` · +1 bonus (RR ≥ ${current.bonusRunRateFactor}×)`
+              : ""}
+          </p>
+        </div>
+        <span className="text-xs font-bold text-primary">
+          {open ? "Close" : "Edit"}
+        </span>
+      </button>
+      {open && (
+        <div className="grid gap-4 p-5 sm:grid-cols-3">
+          <label className="text-sm">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Win points
+            </span>
+            <input
+              type="number"
+              value={rules.win}
+              onChange={(e) => set({ win: Number(e.target.value) })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 outline-none focus:border-primary"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Draw / tie points
+            </span>
+            <input
+              type="number"
+              value={rules.draw}
+              onChange={(e) => set({ draw: Number(e.target.value) })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 outline-none focus:border-primary"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Loss points
+            </span>
+            <input
+              type="number"
+              value={rules.loss}
+              onChange={(e) => set({ loss: Number(e.target.value) })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 outline-none focus:border-primary"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm sm:col-span-3">
+            <input
+              type="checkbox"
+              checked={rules.bonusEnabled}
+              onChange={(e) => set({ bonusEnabled: e.target.checked })}
+              className="h-4 w-4 accent-primary"
+            />
+            <span>Award +1 bonus point for a dominant win</span>
+          </label>
+          {rules.bonusEnabled && (
+            <label className="text-sm sm:col-span-3">
+              <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Bonus run-rate factor (winner RR ≥ factor × loser RR)
+              </span>
+              <input
+                type="number"
+                step="0.05"
+                value={rules.bonusRunRateFactor}
+                onChange={(e) =>
+                  set({ bonusRunRateFactor: Number(e.target.value) })
+                }
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 outline-none focus:border-primary sm:max-w-[200px]"
+              />
+            </label>
+          )}
+          <div className="flex gap-2 sm:col-span-3">
+            <button
+              onClick={save}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary-hover"
+            >
+              Save Rules
+            </button>
+            <button
+              onClick={() => setRules(getPointsRules(league))}
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:border-primary"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function PlayoffsPanel({ league }: { league: League }) {
   const playoffs = league.matches.filter((m) => m.stage && m.stage !== "group");
