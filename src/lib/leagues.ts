@@ -186,6 +186,14 @@ export const setMatchStage = (
     if (m) m.stage = stage;
   });
 
+export const updatePointsRules = (
+  leagueId: string,
+  rules: PointsRules,
+) =>
+  withLeague(leagueId, (l) => {
+    l.pointsRules = { ...DEFAULT_POINTS_RULES, ...rules };
+  });
+
 export type Standing = {
   team: string;
   played: number;
