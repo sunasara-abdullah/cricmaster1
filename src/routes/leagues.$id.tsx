@@ -115,6 +115,7 @@ function StandingsPanel({ league }: { league: League }) {
               <th className="px-2 py-2 text-right font-bold">W</th>
               <th className="px-2 py-2 text-right font-bold">L</th>
               <th className="px-2 py-2 text-right font-bold">T</th>
+              <th className="px-2 py-2 text-right font-bold">Bonus</th>
               <th className="px-2 py-2 text-right font-bold">Pts</th>
               <th className="px-4 py-2 text-right font-bold">NRR</th>
               <th className="px-4 py-2 text-left font-bold">Ranking Reason</th>
@@ -136,6 +137,9 @@ function StandingsPanel({ league }: { league: League }) {
                 </td>
                 <td className="px-2 py-2 text-right text-muted-foreground">
                   {s.tied}
+                </td>
+                <td className="px-2 py-2 text-right text-muted-foreground">
+                  {s.bonus}
                 </td>
                 <td className="px-2 py-2 text-right font-bold">{s.points}</td>
                 <td className="px-4 py-2 text-right text-muted-foreground">
