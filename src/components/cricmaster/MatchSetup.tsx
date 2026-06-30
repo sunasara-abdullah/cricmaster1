@@ -9,15 +9,15 @@ export function MatchSetup({
   initial?: Partial<MatchConfig>;
 }) {
   const [config, setConfig] = useState<MatchConfig>({
-    teamA: initial?.teamA ?? "India",
-    teamB: initial?.teamB ?? "Australia",
+    teamA: initial?.teamA ?? "",
+    teamB: initial?.teamB ?? "",
     overs: initial?.overs ?? 20,
-    striker: "Opener 1",
-    nonStriker: "Opener 2",
-    bowler: "Bowler 1",
-    venue: initial?.venue ?? "Wankhede Stadium",
+    striker: "",
+    nonStriker: "",
+    bowler: "",
+    venue: initial?.venue ?? "",
     playersPerTeam: 11,
-    tossWinner: initial?.teamA ?? "India",
+    tossWinner: initial?.teamA ?? "",
     tossDecision: "bat",
     leagueId: initial?.leagueId,
     leagueMatchId: initial?.leagueMatchId,
@@ -38,6 +38,14 @@ export function MatchSetup({
     "mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground";
 
   const start = () => {
+    if (
+      !config.teamA.trim() ||
+      !config.teamB.trim() ||
+      !config.striker.trim() ||
+      !config.nonStriker.trim() ||
+      !config.bowler.trim()
+    )
+      return;
     const bowlingFirst =
       battingFirst === config.teamA ? config.teamB : config.teamA;
     onStart({
@@ -72,6 +80,7 @@ export function MatchSetup({
             <label className={labelCls}>Team A</label>
             <input
               className={field}
+              placeholder="e.g. Mumbai XI"
               value={config.teamA}
               onChange={(e) => {
                 set("teamA", e.target.value);
@@ -84,6 +93,7 @@ export function MatchSetup({
             <label className={labelCls}>Team B</label>
             <input
               className={field}
+              placeholder="e.g. Delhi XI"
               value={config.teamB}
               onChange={(e) => set("teamB", e.target.value)}
             />
@@ -119,6 +129,7 @@ export function MatchSetup({
             <label className={labelCls}>Venue</label>
             <input
               className={field}
+              placeholder="Venue"
               value={config.venue}
               onChange={(e) => set("venue", e.target.value)}
             />
@@ -166,6 +177,7 @@ export function MatchSetup({
             <label className={labelCls}>Striker ({battingFirst})</label>
             <input
               className={field}
+              placeholder="Striker name"
               value={config.striker}
               onChange={(e) => set("striker", e.target.value)}
             />
@@ -174,6 +186,7 @@ export function MatchSetup({
             <label className={labelCls}>Non-Striker</label>
             <input
               className={field}
+              placeholder="Non-striker name"
               value={config.nonStriker}
               onChange={(e) => set("nonStriker", e.target.value)}
             />
@@ -184,6 +197,7 @@ export function MatchSetup({
           <label className={labelCls}>Opening Bowler</label>
           <input
             className={field}
+            placeholder="Bowler name"
             value={config.bowler}
             onChange={(e) => set("bowler", e.target.value)}
           />
@@ -191,7 +205,14 @@ export function MatchSetup({
 
         <button
           onClick={start}
-          className="w-full rounded-xl bg-primary py-3.5 font-heading text-lg font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          disabled={
+            !config.teamA.trim() ||
+            !config.teamB.trim() ||
+            !config.striker.trim() ||
+            !config.nonStriker.trim() ||
+            !config.bowler.trim()
+          }
+          className="w-full rounded-xl bg-primary py-3.5 font-heading text-lg font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Start Match
         </button>
