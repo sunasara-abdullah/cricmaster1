@@ -183,6 +183,11 @@ function PointsRulesPanel({ league }: { league: League }) {
     setOpen(false);
   };
 
+  const applyPreset = (preset: (typeof POINTS_PRESETS)[number]) => {
+    setRules(preset.rules);
+    updatePointsRules(league.id, preset.rules);
+  };
+
   return (
     <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-card">
       <button
@@ -206,6 +211,26 @@ function PointsRulesPanel({ league }: { league: League }) {
       </button>
       {open && (
         <div className="grid gap-4 p-5 sm:grid-cols-3">
+          <div className="sm:col-span-3">
+            <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Quick presets — apply with one click
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {POINTS_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => applyPreset(p)}
+                  className="rounded-lg border border-border bg-white/[0.02] px-3 py-2 text-left transition-colors hover:border-primary"
+                >
+                  <span className="block text-sm font-bold">{p.name}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {p.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="text-sm">
             <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Win points
