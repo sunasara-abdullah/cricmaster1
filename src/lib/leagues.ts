@@ -61,6 +61,52 @@ export const getPointsRules = (league: League): PointsRules => ({
   ...(league.pointsRules ?? {}),
 });
 
+export type PointsPreset = {
+  id: string;
+  name: string;
+  description: string;
+  rules: PointsRules;
+};
+
+export const POINTS_PRESETS: PointsPreset[] = [
+  {
+    id: "t20",
+    name: "T20 League",
+    description: "Win 2 · Tie 1 · Loss 0",
+    rules: { win: 2, draw: 1, loss: 0, bonusEnabled: false, bonusRunRateFactor: 1.25 },
+  },
+  {
+    id: "odi",
+    name: "ODI League",
+    description: "Win 2 · Tie/NR 1 · Loss 0",
+    rules: { win: 2, draw: 1, loss: 0, bonusEnabled: false, bonusRunRateFactor: 1.25 },
+  },
+  {
+    id: "ipl",
+    name: "IPL Style",
+    description: "Win 2 · Tie 1 · Loss 0 (Super Over)",
+    rules: { win: 2, draw: 1, loss: 0, bonusEnabled: false, bonusRunRateFactor: 1.25 },
+  },
+  {
+    id: "bbl-bonus",
+    name: "Bonus Point League",
+    description: "Win 2 · Tie 1 · Loss 0 · +1 dominant win",
+    rules: { win: 2, draw: 1, loss: 0, bonusEnabled: true, bonusRunRateFactor: 1.25 },
+  },
+  {
+    id: "wc-super",
+    name: "World Cup Super Six",
+    description: "Win 4 · Tie/NR 2 · Loss 0",
+    rules: { win: 4, draw: 2, loss: 0, bonusEnabled: false, bonusRunRateFactor: 1.25 },
+  },
+  {
+    id: "test",
+    name: "Test Championship",
+    description: "Win 12 · Draw 4 · Loss 0",
+    rules: { win: 12, draw: 4, loss: 0, bonusEnabled: false, bonusRunRateFactor: 1.25 },
+  },
+];
+
 const uid = () =>
   `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
