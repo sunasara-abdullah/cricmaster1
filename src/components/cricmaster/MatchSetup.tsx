@@ -9,15 +9,15 @@ export function MatchSetup({
   initial?: Partial<MatchConfig>;
 }) {
   const [config, setConfig] = useState<MatchConfig>({
-    teamA: initial?.teamA ?? "India",
-    teamB: initial?.teamB ?? "Australia",
+    teamA: initial?.teamA ?? "",
+    teamB: initial?.teamB ?? "",
     overs: initial?.overs ?? 20,
-    striker: "Opener 1",
-    nonStriker: "Opener 2",
-    bowler: "Bowler 1",
-    venue: initial?.venue ?? "Wankhede Stadium",
+    striker: "",
+    nonStriker: "",
+    bowler: "",
+    venue: initial?.venue ?? "",
     playersPerTeam: 11,
-    tossWinner: initial?.teamA ?? "India",
+    tossWinner: initial?.teamA ?? "",
     tossDecision: "bat",
     leagueId: initial?.leagueId,
     leagueMatchId: initial?.leagueMatchId,
