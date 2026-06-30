@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
+import { Landing } from "@/components/cricmaster/Landing";
 import { MatchSetup } from "@/components/cricmaster/MatchSetup";
 import { Scoreboard } from "@/components/cricmaster/Scoreboard";
 import type { MatchConfig } from "@/lib/cricket";
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [config, setConfig] = useState<MatchConfig | null>(null);
+  const [started, setStarted] = useState(false);
   const [initial, setInitial] = useState<Partial<MatchConfig> | undefined>(
     undefined,
   );
@@ -38,6 +40,7 @@ function Index() {
       const raw = window.localStorage.getItem(FIXTURE_KEY);
       if (raw) {
         setInitial(JSON.parse(raw));
+        setStarted(true);
         window.localStorage.removeItem(FIXTURE_KEY);
       }
     } catch {
@@ -50,8 +53,10 @@ function Index() {
       <Navbar />
       {config ? (
         <Scoreboard config={config} onReset={() => setConfig(null)} />
-      ) : (
+      ) : started ? (
         <MatchSetup onStart={setConfig} initial={initial} />
+      ) : (
+        <Landing onGetStarted={() => setStarted(true)} />
       )}
     </div>
   );
