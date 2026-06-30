@@ -205,7 +205,14 @@ export function MatchSetup({
 
         <button
           onClick={start}
-          className="w-full rounded-xl bg-primary py-3.5 font-heading text-lg font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          disabled={
+            !config.teamA.trim() ||
+            !config.teamB.trim() ||
+            !config.striker.trim() ||
+            !config.nonStriker.trim() ||
+            !config.bowler.trim()
+          }
+          className="w-full rounded-xl bg-primary py-3.5 font-heading text-lg font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
           Start Match
         </button>
