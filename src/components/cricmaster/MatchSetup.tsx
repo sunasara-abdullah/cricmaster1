@@ -38,6 +38,14 @@ export function MatchSetup({
     "mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground";
 
   const start = () => {
+    if (
+      !config.teamA.trim() ||
+      !config.teamB.trim() ||
+      !config.striker.trim() ||
+      !config.nonStriker.trim() ||
+      !config.bowler.trim()
+    )
+      return;
     const bowlingFirst =
       battingFirst === config.teamA ? config.teamB : config.teamA;
     onStart({
