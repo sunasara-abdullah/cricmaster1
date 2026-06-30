@@ -80,6 +80,7 @@ export function MatchSetup({
             <label className={labelCls}>Team A</label>
             <input
               className={field}
+              placeholder="e.g. Mumbai XI"
               value={config.teamA}
               onChange={(e) => {
                 set("teamA", e.target.value);
@@ -92,6 +93,7 @@ export function MatchSetup({
             <label className={labelCls}>Team B</label>
             <input
               className={field}
+              placeholder="e.g. Delhi XI"
               value={config.teamB}
               onChange={(e) => set("teamB", e.target.value)}
             />
@@ -127,6 +129,7 @@ export function MatchSetup({
             <label className={labelCls}>Venue</label>
             <input
               className={field}
+              placeholder="Venue"
               value={config.venue}
               onChange={(e) => set("venue", e.target.value)}
             />
@@ -174,6 +177,7 @@ export function MatchSetup({
             <label className={labelCls}>Striker ({battingFirst})</label>
             <input
               className={field}
+              placeholder="Striker name"
               value={config.striker}
               onChange={(e) => set("striker", e.target.value)}
             />
@@ -182,6 +186,7 @@ export function MatchSetup({
             <label className={labelCls}>Non-Striker</label>
             <input
               className={field}
+              placeholder="Non-striker name"
               value={config.nonStriker}
               onChange={(e) => set("nonStriker", e.target.value)}
             />
@@ -192,6 +197,7 @@ export function MatchSetup({
           <label className={labelCls}>Opening Bowler</label>
           <input
             className={field}
+            placeholder="Bowler name"
             value={config.bowler}
             onChange={(e) => set("bowler", e.target.value)}
           />
