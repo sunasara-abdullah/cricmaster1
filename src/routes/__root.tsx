@@ -126,6 +126,24 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    // One-time wipe of leftover test/demo data so the app starts fresh.
+    try {
+      const FRESH_FLAG = "cricmaster:fresh-reset:v1";
+      if (!window.localStorage.getItem(FRESH_FLAG)) {
+        const keys: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k && k.startsWith("cricmaster:")) keys.push(k);
+        }
+        keys.forEach((k) => window.localStorage.removeItem(k));
+        window.localStorage.setItem(FRESH_FLAG, "1");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
