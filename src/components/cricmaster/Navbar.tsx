@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
+import faviconUrl from "/favicon.png?url";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -9,14 +11,42 @@ const links = [
 ] as const;
 
 export function Navbar() {
+  const handleLogout = () => {
+    if (typeof window === "undefined") return;
+    if (
+      !window.confirm(
+        "Sign out & reset? This clears all matches, players, teams, leagues and setup data on this device.",
+      )
+    )
+      return;
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (k && k.startsWith("cricmaster:")) keys.push(k);
+      }
+      keys.forEach((k) => window.localStorage.removeItem(k));
+    } catch {
+      /* ignore */
+    }
+    window.location.href = "/";
+  };
+
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-8">
           <Link
             to="/"
-            className="font-heading text-2xl font-bold tracking-tighter text-primary"
+            className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tighter text-primary"
           >
+            <img
+              src={faviconUrl}
+              alt="CricMaster logo"
+              width={32}
+              height={32}
+              className="size-8"
+            />
             CRICMASTER
           </Link>
           <div className="hidden gap-6 text-sm font-medium text-muted-foreground md:flex">
@@ -46,6 +76,14 @@ export function Navbar() {
           >
             Dashboard
           </Link>
+          <button
+            onClick={handleLogout}
+            title="Sign out & reset all data"
+            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+          >
+            <LogOut className="size-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </div>
     </nav>
