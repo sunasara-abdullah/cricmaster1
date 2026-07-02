@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { LogOut } from "lucide-react";
+import { LogOut, LogIn } from "lucide-react";
+import markUrl from "@/assets/cricmaster-mark.png";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -37,16 +38,17 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link
             to="/"
-            className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tighter text-primary"
+            className="flex items-center gap-2"
           >
             <img
-              src="/favicon.png"
+              src={markUrl}
               alt="CricMaster logo"
-              width={32}
-              height={32}
-              className="size-8"
+              className="h-9 w-auto md:h-10"
             />
-            CRICMASTER
+            <span className="font-heading text-2xl font-bold tracking-tighter">
+              <span className="text-foreground">Cric</span>
+              <span className="text-primary">Master</span>
+            </span>
           </Link>
           <div className="hidden gap-6 text-sm font-medium text-muted-foreground md:flex">
             {links.map((l) => (
@@ -74,6 +76,13 @@ export function Navbar() {
             className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
             Dashboard
+          </Link>
+          <Link
+            to="/players"
+            className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+          >
+            <LogIn className="size-4" />
+            <span className="hidden sm:inline">Login</span>
           </Link>
           <button
             onClick={handleLogout}
