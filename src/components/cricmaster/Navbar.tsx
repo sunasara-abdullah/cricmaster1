@@ -41,7 +41,7 @@ export function Navbar() {
             className="flex items-center"
           >
             <img
-              src={logoUrl.url}
+              src={logoUrl}
               alt="CricMaster logo"
               className="h-9 w-auto md:h-10"
             />
