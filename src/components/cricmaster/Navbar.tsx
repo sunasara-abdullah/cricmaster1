@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { LogOut } from "lucide-react";
 import { LogOut, LogIn } from "lucide-react";
 import logoUrl from "@/assets/cricmaster-logo.png.asset.json";
 
