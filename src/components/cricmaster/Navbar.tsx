@@ -40,7 +40,7 @@ export function Navbar() {
             className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tighter text-primary"
           >
             <img
-              src={faviconUrl}
+              src="/favicon.png"
               alt="CricMaster logo"
               width={32}
               height={32}
