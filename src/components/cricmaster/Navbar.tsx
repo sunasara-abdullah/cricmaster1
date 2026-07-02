@@ -38,16 +38,13 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link
             to="/"
-            className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tighter text-primary"
+            className="flex items-center"
           >
             <img
-              src="/favicon.png"
+              src={logoUrl.url}
               alt="CricMaster logo"
-              width={32}
-              height={32}
-              className="size-8"
+              className="h-9 w-auto md:h-10"
             />
-            CRICMASTER
           </Link>
           <div className="hidden gap-6 text-sm font-medium text-muted-foreground md:flex">
             {links.map((l) => (
