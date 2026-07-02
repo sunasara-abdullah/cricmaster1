@@ -73,6 +73,13 @@ export function Navbar() {
           >
             Dashboard
           </Link>
+          <Link
+            to="/players"
+            className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+          >
+            <LogIn className="size-4" />
+            <span className="hidden sm:inline">Login</span>
+          </Link>
           <button
             onClick={handleLogout}
             title="Sign out & reset all data"
