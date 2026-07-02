@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
-import faviconUrl from "/favicon.png?url";
 
 const links = [
   { to: "/", label: "Live Scoring" },
