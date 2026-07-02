@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { LogOut, LogIn } from "lucide-react";
-import logoUrl from "@/assets/cricmaster-logo.png";
+import markUrl from "@/assets/cricmaster-mark.png";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -38,13 +38,17 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link
             to="/"
-            className="flex items-center"
+            className="flex items-center gap-2"
           >
             <img
-              src={logoUrl}
+              src={markUrl}
               alt="CricMaster logo"
               className="h-9 w-auto md:h-10"
             />
+            <span className="font-heading text-2xl font-bold tracking-tighter">
+              <span className="text-foreground">Cric</span>
+              <span className="text-primary">Master</span>
+            </span>
           </Link>
           <div className="hidden gap-6 text-sm font-medium text-muted-foreground md:flex">
             {links.map((l) => (
