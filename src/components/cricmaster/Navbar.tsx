@@ -1,6 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { LogOut, LogIn } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut, LogIn, User } from "lucide-react";
 import markUrl from "@/assets/cricmaster-mark.png";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -11,7 +13,10 @@ const links = [
 ] as const;
 
 export function Navbar() {
-  const handleLogout = () => {
+  const navigate = useNavigate();
+  const { user, displayName } = useAuth();
+
+  const handleLogout = async () => {
     if (typeof window === "undefined") return;
     if (
       !window.confirm(
@@ -29,7 +34,8 @@ export function Navbar() {
     } catch {
       /* ignore */
     }
-    window.location.href = "/";
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
   };
 
   return (
@@ -64,34 +70,36 @@ export function Navbar() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1">
-            <span className="size-2 animate-pulse rounded-full bg-destructive" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-destructive">
-              Live
-            </span>
-          </div>
-          <Link
-            to="/players"
-            className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/players"
-            className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-          >
-            <LogIn className="size-4" />
-            <span className="hidden sm:inline">Login</span>
-          </Link>
-          <button
-            onClick={handleLogout}
-            title="Sign out & reset all data"
-            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
-          >
-            <LogOut className="size-4" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <Link
+                to="/career"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                <User className="size-4" />
+                <span className="hidden sm:inline">
+                  {displayName ? displayName : "My Career"}
+                </span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                title="Sign out"
+                className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+              >
+                <LogOut className="size-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/auth"
+              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+            >
+              <LogIn className="size-4" />
+              <span>Login</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>
