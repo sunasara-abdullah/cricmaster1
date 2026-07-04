@@ -29,7 +29,7 @@ export async function saveCareerMatch(m: SavedMatch): Promise<void> {
     winner: m.winner ?? "",
     man_of_the_match: m.manOfTheMatch ?? "",
     played_at: m.date ?? new Date().toISOString(),
-    data: m as unknown as Record<string, unknown>,
+    data: m as unknown as never,
   });
 }
 
