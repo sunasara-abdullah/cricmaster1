@@ -11,6 +11,7 @@ import {
 } from "@/lib/cricket";
 import { commitMatch } from "@/lib/playerStats";
 import { saveMatch, type InningsCard } from "@/lib/matchHistory";
+import { saveCareerMatch } from "@/lib/career";
 import { recordLeagueResult } from "@/lib/leagues";
 import { publishLive } from "@/lib/liveShare";
 
