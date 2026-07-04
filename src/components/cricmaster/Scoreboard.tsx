@@ -325,6 +325,8 @@ export function Scoreboard({
       });
     }
     setSavedId(rec.id);
+    // Also save to the signed-in user's cloud career (no-op if signed out)
+    void saveCareerMatch(rec);
   };
 
   // publish live snapshot
