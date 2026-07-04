@@ -1,6 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { LogOut, LogIn } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogOut, LogIn, User } from "lucide-react";
 import markUrl from "@/assets/cricmaster-mark.png";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -11,7 +13,10 @@ const links = [
 ] as const;
 
 export function Navbar() {
-  const handleLogout = () => {
+  const navigate = useNavigate();
+  const { user, displayName } = useAuth();
+
+  const handleLogout = async () => {
     if (typeof window === "undefined") return;
     if (
       !window.confirm(
@@ -29,7 +34,8 @@ export function Navbar() {
     } catch {
       /* ignore */
     }
-    window.location.href = "/";
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
   };
 
   return (
