@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      career_matches: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          man_of_the_match: string
+          overs: number
+          played_at: string
+          result: string
+          team_a: string
+          team_b: string
+          user_id: string
+          venue: string
+          winner: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          man_of_the_match?: string
+          overs?: number
+          played_at?: string
+          result?: string
+          team_a: string
+          team_b: string
+          user_id: string
+          venue?: string
+          winner?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          man_of_the_match?: string
+          overs?: number
+          played_at?: string
+          result?: string
+          team_a?: string
+          team_b?: string
+          user_id?: string
+          venue?: string
+          winner?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
