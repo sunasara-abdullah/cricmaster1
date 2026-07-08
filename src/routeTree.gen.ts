@@ -22,6 +22,7 @@ import { Route as PlayersNameRouteImport } from './routes/players.$name'
 import { Route as MatchesIdRouteImport } from './routes/matches.$id'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as LeaguesIdRouteImport } from './routes/leagues.$id'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedCareerRouteImport } from './routes/_authenticated/career'
 
 const TeamsRoute = TeamsRouteImport.update({
@@ -88,6 +89,11 @@ const LeaguesIdRoute = LeaguesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => LeaguesRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCareerRoute = AuthenticatedCareerRouteImport.update({
   id: '/career',
   path: '/career',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
   '/career': typeof AuthenticatedCareerRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/leagues/$id': typeof LeaguesIdRoute
   '/live/$id': typeof LiveIdRoute
   '/matches/$id': typeof MatchesIdRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
   '/career': typeof AuthenticatedCareerRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/leagues/$id': typeof LeaguesIdRoute
   '/live/$id': typeof LiveIdRoute
   '/matches/$id': typeof MatchesIdRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
   '/_authenticated/career': typeof AuthenticatedCareerRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/leagues/$id': typeof LeaguesIdRoute
   '/live/$id': typeof LiveIdRoute
   '/matches/$id': typeof MatchesIdRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/teams'
     | '/career'
+    | '/settings'
     | '/leagues/$id'
     | '/live/$id'
     | '/matches/$id'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/teams'
     | '/career'
+    | '/settings'
     | '/leagues/$id'
     | '/live/$id'
     | '/matches/$id'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/teams'
     | '/_authenticated/career'
+    | '/_authenticated/settings'
     | '/leagues/$id'
     | '/live/$id'
     | '/matches/$id'
@@ -295,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaguesIdRouteImport
       parentRoute: typeof LeaguesRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/career': {
       id: '/_authenticated/career'
       path: '/career'
@@ -307,10 +326,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCareerRoute: typeof AuthenticatedCareerRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCareerRoute: AuthenticatedCareerRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
