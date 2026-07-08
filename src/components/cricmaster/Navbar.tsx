@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, LogIn, User } from "lucide-react";
+import { LogOut, LogIn, User, Settings } from "lucide-react";
 import markUrl from "@/assets/cricmaster-mark.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -81,6 +81,14 @@ export function Navbar() {
                 <span className="hidden sm:inline">
                   {displayName ? displayName : "My Career"}
                 </span>
+              </Link>
+              <Link
+                to="/settings"
+                title="Profile settings"
+                className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Settings className="size-4" />
+                <span className="hidden sm:inline">Settings</span>
               </Link>
               <button
                 onClick={handleLogout}
