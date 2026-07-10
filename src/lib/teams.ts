@@ -1,4 +1,5 @@
 import { listMatches, type SavedMatch } from "./matchHistory";
+import { queuePush } from "./cloudSync";
 
 const KEY = "cricmaster:teams:v1";
 
@@ -27,6 +28,7 @@ export const loadTeams = (): TeamStore => {
 const save = (store: TeamStore) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(store));
+  queuePush(KEY, store);
   window.dispatchEvent(new Event("cricmaster:teams-updated"));
 };
 

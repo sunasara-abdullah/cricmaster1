@@ -1,4 +1,5 @@
 import type { Batter, Bowler } from "./cricket";
+import { queuePush } from "./cloudSync";
 
 const KEY = "cricmaster:matches:v1";
 
@@ -46,6 +47,7 @@ export const loadMatches = (): MatchStore => {
 const save = (store: MatchStore) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(store));
+  queuePush(KEY, store);
   window.dispatchEvent(new Event("cricmaster:matches-updated"));
 };
 

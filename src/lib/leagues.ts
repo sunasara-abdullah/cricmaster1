@@ -1,3 +1,5 @@
+import { queuePush } from "./cloudSync";
+
 const KEY = "cricmaster:leagues:v1";
 
 export type MatchStatus = "scheduled" | "completed";
@@ -123,6 +125,7 @@ export const loadLeagues = (): LeagueStore => {
 const save = (store: LeagueStore) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(store));
+  queuePush(KEY, store);
   window.dispatchEvent(new Event("cricmaster:leagues-updated"));
 };
 
