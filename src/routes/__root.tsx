@@ -12,6 +12,11 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  setSyncUser,
+  hydrateFromCloud,
+  clearLocalStores,
+} from "@/lib/cloudSync";
 
 function NotFoundComponent() {
   return (
@@ -153,9 +158,35 @@ function RootComponent() {
         return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      if (event === "SIGNED_OUT") {
+        setSyncUser(null);
+        clearLocalStores();
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
+
+  // Hydrate the user's cloud-stored matches/teams/leagues into localStorage
+  // on load and whenever the signed-in user changes.
+  useEffect(() => {
+    let active = true;
+    const hydrate = async (userId: string | null) => {
+      setSyncUser(userId);
+      if (userId && active) await hydrateFromCloud();
+    };
+    supabase.auth.getSession().then(({ data }) => {
+      hydrate(data.session?.user.id ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        hydrate(session?.user.id ?? null);
+      }
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
