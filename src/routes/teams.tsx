@@ -8,6 +8,7 @@ import {
   deleteTeam,
   teamRecord,
 } from "@/lib/teams";
+import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 
 export const Route = createFileRoute("/teams")({
   head: () => ({
@@ -103,6 +104,7 @@ function TeamsPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Add a team above to start building squads.
             </p>
+            <DemoDataButtons />
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

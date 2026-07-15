@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { listMatches, deleteMatch, type SavedMatch } from "@/lib/matchHistory";
 import { oversText } from "@/lib/cricket";
+import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 
 export const Route = createFileRoute("/matches")({
   head: () => ({
@@ -59,12 +60,15 @@ function MatchesPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Finish a match's 2nd innings and save it to see it here.
             </p>
-            <Link
-              to="/"
-              className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary-hover"
-            >
-              Start Scoring
-            </Link>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+              <Link
+                to="/"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary-hover"
+              >
+                Start Scoring
+              </Link>
+              <DemoDataButtons compact />
+            </div>
           </div>
         ) : (
           <ul className="space-y-4">
