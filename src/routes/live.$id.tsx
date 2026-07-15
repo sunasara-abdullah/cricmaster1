@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
-import { readLive, type LiveSnapshot } from "@/lib/liveShare";
+import {
+  readLive,
+  fetchLive,
+  subscribeLive,
+  type LiveSnapshot,
+} from "@/lib/liveShare";
 import { oversText } from "@/lib/cricket";
 
 export const Route = createFileRoute("/live/$id")({
@@ -15,18 +20,33 @@ function LivePage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const sync = () => {
-      setSnap(readLive(id));
+    // 1) Local snapshot (works for the scorer's own tab, instant)
+    const local = readLive(id);
+    if (local) {
+      setSnap(local);
       setReady(true);
+    }
+    // 2) Cloud fetch (works for any spectator on any device)
+    let cancelled = false;
+    fetchLive(id).then((cloud) => {
+      if (cancelled) return;
+      if (cloud) setSnap(cloud);
+      setReady(true);
+    });
+    // 3) Realtime subscription for pushed updates
+    const unsub = subscribeLive(id, (cloud) => setSnap(cloud));
+    // 4) Same-tab local mirror (scorer's own device)
+    const onLocal = () => {
+      const l = readLive(id);
+      if (l) setSnap(l);
     };
-    sync();
-    const t = setInterval(sync, 2000);
-    window.addEventListener("cricmaster:live-updated", sync);
-    window.addEventListener("storage", sync);
+    window.addEventListener("cricmaster:live-updated", onLocal);
+    window.addEventListener("storage", onLocal);
     return () => {
-      clearInterval(t);
-      window.removeEventListener("cricmaster:live-updated", sync);
-      window.removeEventListener("storage", sync);
+      cancelled = true;
+      unsub();
+      window.removeEventListener("cricmaster:live-updated", onLocal);
+      window.removeEventListener("storage", onLocal);
     };
   }, [id]);
 
