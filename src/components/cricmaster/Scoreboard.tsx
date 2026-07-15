@@ -389,28 +389,28 @@ export function Scoreboard({
   const need = target != null ? Math.max(0, target - state.runs) : null;
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 sm:py-8">
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border bg-white/[0.02] px-6 py-4">
-              <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-white/[0.02] px-4 py-3 sm:px-6 sm:py-4">
+              <span className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground sm:text-xs">
                 {battingFirst} vs {bowlingFirst} • {config.venue}
               </span>
-              <span className="text-xs font-medium text-primary">
+              <span className="text-[10px] font-medium text-primary sm:text-xs">
                 Innings {inningsNo} • Over {oversText(state.legalBalls)} /{" "}
                 {config.overs}
               </span>
             </div>
 
-            <div className="flex flex-col items-center gap-2 p-8">
-              <h2 className="font-heading text-2xl font-bold tracking-tight text-muted-foreground">
+            <div className="flex flex-col items-center gap-2 p-6 sm:p-8">
+              <h2 className="font-heading text-xl font-bold tracking-tight text-muted-foreground sm:text-2xl">
                 {battingTeam.toUpperCase()} BATTING
               </h2>
-              <div className="font-heading text-7xl font-bold tracking-tight">
+              <div className="font-heading text-5xl font-bold tracking-tight sm:text-7xl">
                 {state.runs}/{state.wickets}
               </div>
-              <div className="font-medium text-muted-foreground">
+              <div className="text-center text-sm font-medium text-muted-foreground sm:text-base">
                 CRR: {crr} • Proj: {projected} • Balls left:{" "}
                 {Math.max(0, ballsLeft)}
               </div>
@@ -527,8 +527,8 @@ export function Scoreboard({
 
           {/* Controls */}
           {!matchOver && !(inningsDone && inningsNo === 1) && (
-            <section className="rounded-2xl border border-border bg-card p-6">
-              <div className="grid grid-cols-4 gap-3">
+            <section className="rounded-2xl border border-border bg-card p-3 sm:p-6">
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
                 {[0, 1, 2, 3].map((r) => (
                   <button key={r} onClick={() => score(r)} className={btnBase}>
                     {r}
@@ -548,7 +548,7 @@ export function Scoreboard({
                 </button>
                 <button
                   onClick={wicket}
-                  className="aspect-square rounded-lg border border-destructive/30 bg-destructive/10 text-base font-bold text-destructive transition-transform hover:bg-destructive/20 active:scale-95"
+                  className="aspect-square rounded-lg border border-destructive/30 bg-destructive/10 text-xs font-bold text-destructive transition-transform hover:bg-destructive/20 active:scale-95 sm:text-base"
                 >
                   WICKET
                 </button>
@@ -566,13 +566,13 @@ export function Scoreboard({
                 </button>
                 <button
                   onClick={shareLive}
-                  className="aspect-auto rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5"
+                  className="col-span-2 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-white/5 sm:col-span-1 sm:text-sm"
                 >
                   {shared ? "✓ Link copied" : "Share Live"}
                 </button>
                 <button
                   onClick={onReset}
-                  className="aspect-auto rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5"
+                  className="col-span-2 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-white/5 sm:col-span-1 sm:text-sm"
                 >
                   New Match
                 </button>
@@ -728,6 +728,6 @@ export function Scoreboard({
 }
 
 const btnBase =
-  "aspect-square rounded-lg bg-secondary text-2xl font-heading font-bold transition-transform hover:bg-secondary/70 active:scale-95";
+  "aspect-square rounded-lg bg-secondary text-xl sm:text-2xl font-heading font-bold transition-transform hover:bg-secondary/70 active:scale-95";
 const btnAlt =
-  "aspect-square rounded-lg bg-secondary text-base font-medium transition-transform hover:bg-secondary/70 active:scale-95";
+  "aspect-square rounded-lg bg-secondary text-xs sm:text-base font-medium transition-transform hover:bg-secondary/70 active:scale-95";
