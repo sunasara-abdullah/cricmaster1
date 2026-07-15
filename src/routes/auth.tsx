@@ -20,7 +20,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -40,7 +40,13 @@ function AuthPage() {
     setInfo("");
     setBusy(true);
     try {
-      if (mode === "signup") {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("Password reset link email par bhej diya. Inbox check karein.");
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -94,14 +100,21 @@ function AuthPage() {
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
           <h1 className="font-heading text-2xl font-bold">
-            {mode === "login" ? "Welcome back" : "Create your account"}
+            {mode === "login"
+              ? "Welcome back"
+              : mode === "signup"
+                ? "Create your account"
+                : "Reset your password"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "login"
               ? "Apne career aur match history dekhne ke liye login karein."
-              : "Sign up karein taaki aapka pura cricket career save rahe."}
+              : mode === "signup"
+                ? "Sign up karein taaki aapka pura cricket career save rahe."
+                : "Apna email daalein — reset link bhejenge."}
           </p>
 
+          {mode !== "forgot" && (
           <button
             onClick={google}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-accent"
@@ -114,12 +127,15 @@ function AuthPage() {
             </svg>
             Continue with Google
           </button>
+          )}
 
+          {mode !== "forgot" && (
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             OR
             <span className="h-px flex-1 bg-border" />
           </div>
+          )}
 
           <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
@@ -144,6 +160,7 @@ function AuthPage() {
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+            {mode !== "forgot" && (
             <div>
               <label className="mb-1 block text-sm font-medium">Password</label>
               <input
@@ -156,6 +173,19 @@ function AuthPage() {
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+            )}
+
+            {mode === "login" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => { setMode("forgot"); setError(""); setInfo(""); }}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             {info && <p className="text-sm font-medium text-primary">{info}</p>}
@@ -165,22 +195,39 @@ function AuthPage() {
               disabled={busy}
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
             >
-              {busy ? "Please wait…" : mode === "login" ? "Login" : "Sign Up"}
+              {busy
+                ? "Please wait…"
+                : mode === "login"
+                  ? "Login"
+                  : mode === "signup"
+                    ? "Sign Up"
+                    : "Send reset link"}
             </button>
           </form>
 
           <p className="mt-5 text-center text-sm text-muted-foreground">
-            {mode === "login" ? "Naye ho? " : "Pehle se account hai? "}
-            <button
-              onClick={() => {
-                setMode(mode === "login" ? "signup" : "login");
-                setError("");
-                setInfo("");
-              }}
-              className="font-semibold text-primary hover:underline"
-            >
-              {mode === "login" ? "Create account" : "Login"}
-            </button>
+            {mode === "forgot" ? (
+              <button
+                onClick={() => { setMode("login"); setError(""); setInfo(""); }}
+                className="font-semibold text-primary hover:underline"
+              >
+                ← Back to login
+              </button>
+            ) : (
+              <>
+                {mode === "login" ? "Naye ho? " : "Pehle se account hai? "}
+                <button
+                  onClick={() => {
+                    setMode(mode === "login" ? "signup" : "login");
+                    setError("");
+                    setInfo("");
+                  }}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  {mode === "login" ? "Create account" : "Login"}
+                </button>
+              </>
+            )}
           </p>
         </div>
       </div>

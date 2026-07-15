@@ -7,6 +7,7 @@ import {
   createLeague,
   deleteLeague,
 } from "@/lib/leagues";
+import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 
 export const Route = createFileRoute("/leagues")({
   head: () => ({
@@ -105,6 +106,7 @@ function LeaguesPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Create your first competition above to start scheduling matches.
             </p>
+            <DemoDataButtons />
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

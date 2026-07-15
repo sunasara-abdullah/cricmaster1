@@ -14,7 +14,8 @@ function InningsTable({ card }: { card: InningsCard }) {
         </span>
       </div>
 
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[480px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="px-3 py-2 font-bold">Batter</th>
@@ -48,8 +49,10 @@ function InningsTable({ card }: { card: InningsCard }) {
             ))}
         </tbody>
       </table>
+      </div>
 
-      <table className="w-full border-t border-border text-sm">
+      <div className="overflow-x-auto border-t border-border">
+      <table className="w-full min-w-[420px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="px-3 py-2 font-bold">Bowler</th>
@@ -79,6 +82,7 @@ function InningsTable({ card }: { card: InningsCard }) {
             ))}
         </tbody>
       </table>
+      </div>
     </section>
   );
 }

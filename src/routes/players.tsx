@@ -9,6 +9,7 @@ import {
   bowlingEcon,
   bestFigures,
 } from "@/lib/playerStats";
+import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 
 export const Route = createFileRoute("/players")({
   head: () => ({
@@ -83,12 +84,15 @@ function PlayersPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Score a match and hit "Save Stats" to start building profiles.
             </p>
-            <Link
-              to="/"
-              className="mt-5 inline-block rounded-xl bg-primary px-5 py-2.5 font-bold text-primary-foreground hover:bg-primary-hover"
-            >
-              Start Scoring
-            </Link>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+              <Link
+                to="/"
+                className="rounded-xl bg-primary px-5 py-2.5 font-bold text-primary-foreground hover:bg-primary-hover"
+              >
+                Start Scoring
+              </Link>
+              <DemoDataButtons compact />
+            </div>
           </div>
         ) : (
           <>
