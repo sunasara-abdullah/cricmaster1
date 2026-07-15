@@ -15,6 +15,7 @@ export const SYNCED_STORES: Record<string, string> = {
   "cricmaster:matches:v1": "cricmaster:matches-updated",
   "cricmaster:teams:v1": "cricmaster:teams-updated",
   "cricmaster:leagues:v1": "cricmaster:leagues-updated",
+  "cricmaster:playerStats:v1": "cricmaster:stats-updated",
 };
 
 let currentUserId: string | null = null;

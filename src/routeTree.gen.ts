@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as LeaguesRouteImport } from './routes/leagues'
@@ -33,6 +34,11 @@ const TeamsRoute = TeamsRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayersRoute = PlayersRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/leagues': typeof LeaguesRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
   '/career': typeof AuthenticatedCareerRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/leagues': typeof LeaguesRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
   '/career': typeof AuthenticatedCareerRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/leagues': typeof LeaguesRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
   '/_authenticated/career': typeof AuthenticatedCareerRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/matches'
     | '/players'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/teams'
     | '/career'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/matches'
     | '/players'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/teams'
     | '/career'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/matches'
     | '/players'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/teams'
     | '/_authenticated/career'
@@ -209,6 +221,7 @@ export interface RootRouteChildren {
   LeaguesRoute: typeof LeaguesRouteWithChildren
   MatchesRoute: typeof MatchesRouteWithChildren
   PlayersRoute: typeof PlayersRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamsRoute: typeof TeamsRouteWithChildren
   LiveIdRoute: typeof LiveIdRoute
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/players': {
@@ -387,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaguesRoute: LeaguesRouteWithChildren,
   MatchesRoute: MatchesRouteWithChildren,
   PlayersRoute: PlayersRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamsRoute: TeamsRouteWithChildren,
   LiveIdRoute: LiveIdRoute,
