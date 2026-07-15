@@ -21,18 +21,12 @@ function buildInnings(
   batters: Batter[],
   bowlers: Bowler[],
 ): InningsCard {
-  const runs = batters.reduce((s, b) => s + b.runs, 0)
-    + bowlers.reduce((s, b) => s + b.runs, 0) - batters.reduce((s, b) => s + b.runs, 0); // batters already contain runs
-  const finalRuns = batters.reduce((s, b) => s + b.runs, 0);
-  const wickets = batters.filter((b) => b.out).length;
-  const balls = bowlers.reduce((s, b) => s + b.balls, 0);
-  void runs;
   return {
     battingTeam,
     bowlingTeam,
-    runs: finalRuns,
-    wickets,
-    balls,
+    runs: batters.reduce((s, b) => s + b.runs, 0),
+    wickets: batters.filter((b) => b.out).length,
+    balls: bowlers.reduce((s, b) => s + b.balls, 0),
     batters,
     bowlers,
   };
