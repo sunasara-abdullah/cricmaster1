@@ -23,6 +23,9 @@ export const Route = createFileRoute("/leagues")({
         property: "og:description",
         content: "Organise teams and match schedules by competition.",
       },
+      { property: "og:image", content: "https://cricmaster1.lovable.app/og-leagues.jpg" },
+      { name: "twitter:image", content: "https://cricmaster1.lovable.app/og-leagues.jpg" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LeaguesPage,
@@ -30,8 +33,12 @@ export const Route = createFileRoute("/leagues")({
 
 export function useLeagues() {
   const [store, setStore] = useState<LeagueStore>({});
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const sync = () => setStore(loadLeagues());
+    const sync = () => {
+      setStore(loadLeagues());
+      setReady(true);
+    };
     sync();
     window.addEventListener("cricmaster:leagues-updated", sync);
     window.addEventListener("storage", sync);
@@ -40,11 +47,11 @@ export function useLeagues() {
       window.removeEventListener("storage", sync);
     };
   }, []);
-  return store;
+  return { store, ready };
 }
 
 function LeaguesPage() {
-  const store = useLeagues();
+  const { store, ready } = useLeagues();
   const leagues = useMemo(
     () =>
       Object.values(store).sort((a, b) =>
@@ -100,7 +107,13 @@ function LeaguesPage() {
           </button>
         </form>
 
-        {leagues.length === 0 ? (
+        {!ready ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading leagues">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-36 animate-pulse rounded-2xl border border-border bg-card" />
+            ))}
+          </div>
+        ) : leagues.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
             <p className="text-lg font-medium">No leagues yet</p>
             <p className="mt-1 text-sm text-muted-foreground">

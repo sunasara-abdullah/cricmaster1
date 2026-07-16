@@ -19,6 +19,9 @@ export const Route = createFileRoute("/matches")({
         property: "og:description",
         content: "Full scorecards, results and awards for every completed match.",
       },
+      { property: "og:image", content: "https://cricmaster1.lovable.app/og-matches.jpg" },
+      { name: "twitter:image", content: "https://cricmaster1.lovable.app/og-matches.jpg" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: MatchesPage,
@@ -26,8 +29,12 @@ export const Route = createFileRoute("/matches")({
 
 function useMatches() {
   const [m, setM] = useState<SavedMatch[]>([]);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const sync = () => setM(listMatches());
+    const sync = () => {
+      setM(listMatches());
+      setReady(true);
+    };
     sync();
     window.addEventListener("cricmaster:matches-updated", sync);
     window.addEventListener("storage", sync);
@@ -36,11 +43,11 @@ function useMatches() {
       window.removeEventListener("storage", sync);
     };
   }, []);
-  return m;
+  return { matches: m, ready };
 }
 
 function MatchesPage() {
-  const matches = useMatches();
+  const { matches, ready } = useMatches();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -54,7 +61,13 @@ function MatchesPage() {
           </p>
         </header>
 
-        {matches.length === 0 ? (
+        {!ready ? (
+          <ul className="space-y-4" aria-label="Loading matches">
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="h-28 animate-pulse rounded-2xl border border-border bg-card" />
+            ))}
+          </ul>
+        ) : matches.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
             <p className="text-lg font-medium">No matches saved yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
