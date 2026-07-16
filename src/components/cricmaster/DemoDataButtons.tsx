@@ -31,7 +31,7 @@ export function DemoDataButtons({ compact = false }: { compact?: boolean }) {
         onClick={() => seedDemoData()}
         className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
       >
-        ⚡ Load Sample Data
+        ⚡ Try demo
       </button>
       {seeded && (
         <button
