@@ -14,6 +14,8 @@ import { saveMatch, type InningsCard } from "@/lib/matchHistory";
 import { saveCareerMatch } from "@/lib/career";
 import { recordLeagueResult } from "@/lib/leagues";
 import { publishLive } from "@/lib/liveShare";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type State = {
   runs: number;
@@ -289,7 +291,9 @@ export function Scoreboard({
   const saveResult = () => {
     if (!firstInnings) return;
     const second = buildCard();
-    const rec = saveMatch({
+    let rec;
+    try {
+      rec = saveMatch({
       date: new Date().toISOString(),
       venue: config.venue,
       overs: config.overs,
@@ -304,7 +308,12 @@ export function Scoreboard({
       winner: winner === "tie" ? "" : winner,
       leagueId: config.leagueId,
       leagueMatchId: config.leagueMatchId,
-    });
+      });
+    } catch (err) {
+      toast.error("Match save nahi hua. Dobara try karein.");
+      console.error(err);
+      return;
+    }
     // lifetime stats from both innings
     commitMatch(firstInnings.batters, firstInnings.bowlers);
     commitMatch(second.batters, second.bowlers);
@@ -327,6 +336,15 @@ export function Scoreboard({
     setSavedId(rec.id);
     // Also save to the signed-in user's cloud career (no-op if signed out)
     void saveCareerMatch(rec);
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        toast.success("Match saved & synced to your cloud career.");
+      } else {
+        toast.success("Match saved locally.", {
+          description: "Sign in to sync your career across devices.",
+        });
+      }
+    });
   };
 
   // publish live snapshot

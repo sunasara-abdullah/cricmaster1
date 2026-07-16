@@ -5,7 +5,44 @@ import { getMatch, type InningsCard, type SavedMatch } from "@/lib/matchHistory"
 import { oversText, strikeRate, economy } from "@/lib/cricket";
 
 export const Route = createFileRoute("/matches/$id")({
-  head: () => ({ meta: [{ title: "Scorecard — CricMaster" }] }),
+  head: ({ params }) => {
+    const match = typeof window !== "undefined" ? getMatch(params.id) : undefined;
+    const title = match
+      ? `${match.teamA} vs ${match.teamB} — Scorecard | CricMaster`
+      : "Scorecard — CricMaster";
+    const description = match
+      ? `${match.result}. ${match.teamA} vs ${match.teamB}, ${match.overs} overs at ${match.venue}. Full ball-by-ball scorecard on CricMaster.`
+      : "View the full ball-by-ball scorecard on CricMaster.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+      ],
+      scripts: match
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "SportsEvent",
+                name: `${match.teamA} vs ${match.teamB}`,
+                sport: "Cricket",
+                startDate: match.date,
+                location: { "@type": "Place", name: match.venue },
+                competitor: [
+                  { "@type": "SportsTeam", name: match.teamA },
+                  { "@type": "SportsTeam", name: match.teamB },
+                ],
+                description: match.result,
+              }),
+            },
+          ]
+        : undefined,
+    };
+  },
   component: ScorecardPage,
 });
 
