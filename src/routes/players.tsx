@@ -35,8 +35,12 @@ export const Route = createFileRoute("/players")({
 
 function useStats() {
   const [store, setStore] = useState<Record<string, PlayerProfile>>({});
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const sync = () => setStore(loadStats());
+    const sync = () => {
+      setStore(loadStats());
+      setReady(true);
+    };
     sync();
     window.addEventListener("cricmaster:stats-updated", sync);
     window.addEventListener("storage", sync);
@@ -45,11 +49,11 @@ function useStats() {
       window.removeEventListener("storage", sync);
     };
   }, []);
-  return store;
+  return { store, ready };
 }
 
 function PlayersPage() {
-  const store = useStats();
+  const { store, ready } = useStats();
   const players = useMemo(
     () => Object.values(store).sort((a, b) => b.batting.runs - a.batting.runs),
     [store],
@@ -81,7 +85,13 @@ function PlayersPage() {
           </p>
         </header>
 
-        {players.length === 0 ? (
+        {!ready ? (
+          <div className="grid gap-6 md:grid-cols-2" aria-label="Loading player stats">
+            {[0, 1].map((i) => (
+              <div key={i} className="h-64 animate-pulse rounded-2xl border border-border bg-card" />
+            ))}
+          </div>
+        ) : players.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
             <p className="text-lg font-medium">No player stats yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
