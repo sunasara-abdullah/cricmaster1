@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { listMatches, deleteMatch, type SavedMatch } from "@/lib/matchHistory";
 import { oversText } from "@/lib/cricket";
 import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
+import { LoadMore } from "@/components/cricmaster/LoadMore";
+
+const PAGE = 10;
 
 export const Route = createFileRoute("/matches")({
   head: () => ({
@@ -48,6 +54,40 @@ function useMatches() {
 
 function MatchesPage() {
   const { matches, ready } = useMatches();
+  const [query, setQuery] = useState("");
+  const [team, setTeam] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [limit, setLimit] = useState(PAGE);
+
+  const teams = useMemo(() => {
+    const set = new Set<string>();
+    matches.forEach((m) => {
+      set.add(m.teamA);
+      set.add(m.teamB);
+    });
+    return Array.from(set).filter(Boolean).sort();
+  }, [matches]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return matches.filter((m) => {
+      if (q) {
+        const hay = `${m.teamA} ${m.teamB} ${m.venue} ${m.result} ${m.manOfTheMatch ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (team && m.teamA !== team && m.teamB !== team) return false;
+      if (from && new Date(m.date) < new Date(from)) return false;
+      if (to && new Date(m.date) > new Date(`${to}T23:59:59`)) return false;
+      return true;
+    });
+  }, [matches, query, team, from, to]);
+
+  const hasFilters = !!(query || team || from || to);
+  const visible = filtered.slice(0, limit);
+  const field =
+    "rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
