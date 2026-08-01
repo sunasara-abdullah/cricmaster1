@@ -137,7 +137,7 @@ function SettingsPage() {
   };
 
   const signOutAll = async () => {
-    if (!confirm("Sabhi devices se sign out karein?")) return;
+    if (!window.confirm("Sabhi devices se sign out karein?")) return;
     await supabase.auth.signOut({ scope: "global" });
     navigate({ to: "/auth" });
   };
