@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as LeaguesRouteImport } from './routes/leagues'
@@ -28,6 +30,11 @@ import { Route as LeaguesIdRouteImport } from './routes/leagues.$id'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedCareerRouteImport } from './routes/_authenticated/career'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamsRoute = TeamsRouteImport.update({
   id: '/teams',
   path: '/teams',
@@ -41,6 +48,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayersRoute = PlayersRouteImport.update({
@@ -126,9 +138,11 @@ export interface FileRoutesByFullPath {
   '/leagues': typeof LeaguesRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
+  '/terms': typeof TermsRoute
   '/career': typeof AuthenticatedCareerRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/leagues/$id': typeof LeaguesIdRoute
@@ -145,9 +159,11 @@ export interface FileRoutesByTo {
   '/leagues': typeof LeaguesRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
+  '/terms': typeof TermsRoute
   '/career': typeof AuthenticatedCareerRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/leagues/$id': typeof LeaguesIdRoute
@@ -166,9 +182,11 @@ export interface FileRoutesById {
   '/leagues': typeof LeaguesRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/players': typeof PlayersRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/teams': typeof TeamsRouteWithChildren
+  '/terms': typeof TermsRoute
   '/_authenticated/career': typeof AuthenticatedCareerRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/leagues/$id': typeof LeaguesIdRoute
@@ -187,9 +205,11 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/matches'
     | '/players'
+    | '/privacy'
     | '/reset-password'
     | '/sitemap.xml'
     | '/teams'
+    | '/terms'
     | '/career'
     | '/settings'
     | '/leagues/$id'
@@ -206,9 +226,11 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/matches'
     | '/players'
+    | '/privacy'
     | '/reset-password'
     | '/sitemap.xml'
     | '/teams'
+    | '/terms'
     | '/career'
     | '/settings'
     | '/leagues/$id'
@@ -226,9 +248,11 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/matches'
     | '/players'
+    | '/privacy'
     | '/reset-password'
     | '/sitemap.xml'
     | '/teams'
+    | '/terms'
     | '/_authenticated/career'
     | '/_authenticated/settings'
     | '/leagues/$id'
@@ -247,14 +271,23 @@ export interface RootRouteChildren {
   LeaguesRoute: typeof LeaguesRouteWithChildren
   MatchesRoute: typeof MatchesRouteWithChildren
   PlayersRoute: typeof PlayersRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamsRoute: typeof TeamsRouteWithChildren
+  TermsRoute: typeof TermsRoute
   LiveIdRoute: typeof LiveIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teams': {
       id: '/teams'
       path: '/teams'
@@ -274,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/players': {
@@ -449,9 +489,11 @@ const rootRouteChildren: RootRouteChildren = {
   LeaguesRoute: LeaguesRouteWithChildren,
   MatchesRoute: MatchesRouteWithChildren,
   PlayersRoute: PlayersRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamsRoute: TeamsRouteWithChildren,
+  TermsRoute: TermsRoute,
   LiveIdRoute: LiveIdRoute,
 }
 export const routeTree = rootRouteImport
