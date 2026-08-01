@@ -3,6 +3,7 @@ import { LogOut, LogIn, User, Settings } from "lucide-react";
 import markUrl from "@/assets/cricmaster-mark.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -10,6 +11,8 @@ const links = [
   { to: "/players", label: "Players" },
   { to: "/teams", label: "Teams" },
   { to: "/leagues", label: "Leagues" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Support" },
 ] as const;
 
 export function Navbar() {
@@ -18,12 +21,6 @@ export function Navbar() {
 
   const handleLogout = async () => {
     if (typeof window === "undefined") return;
-    if (
-      !window.confirm(
-        "Sign out & reset? This clears all matches, players, teams, leagues and setup data on this device.",
-      )
-    )
-      return;
     try {
       const keys: string[] = [];
       for (let i = 0; i < window.localStorage.length; i++) {
@@ -56,7 +53,7 @@ export function Navbar() {
               <span className="text-primary">Master</span>
             </span>
           </Link>
-          <div className="hidden gap-6 text-sm font-medium text-muted-foreground md:flex">
+          <div className="hidden gap-5 text-sm font-medium text-muted-foreground lg:flex">
             {links.map((l) => (
               <Link
                 key={l.to}
@@ -90,14 +87,16 @@ export function Navbar() {
                 <Settings className="size-4" />
                 <span className="hidden sm:inline">Settings</span>
               </Link>
-              <button
-                onClick={handleLogout}
-                title="Sign out"
+              <ConfirmButton
+                onConfirm={handleLogout}
+                title="Sign out & reset?"
+                description="This signs you out and clears all matches, players, teams, leagues and setup data stored on this device."
+                confirmLabel="Sign out"
                 className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
               >
                 <LogOut className="size-4" />
                 <span className="hidden sm:inline">Logout</span>
-              </button>
+              </ConfirmButton>
             </>
           ) : (
             <Link
