@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
+import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { type Team, getTeam, upsertTeam, teamRecord } from "@/lib/teams";
 import { listMatches, type SavedMatch } from "@/lib/matchHistory";
 import { TeamLogo } from "./teams";
@@ -88,12 +89,11 @@ function TeamProfile() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <Link
-          to="/teams"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← All teams
-        </Link>
+        <Breadcrumbs
+          backTo="/teams"
+          backLabel="All teams"
+          items={[{ label: "Teams", to: "/teams" }, { label: team ? team.name : "Team" }]}
+        />
 
         {team && (
           <>

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import markUrl from "@/assets/cricmaster-mark.png";
@@ -13,10 +14,35 @@ export const Route = createFileRoute("/auth")({
         content:
           "Sign in to CricMaster to save your cricket career, match history and player stats across all your devices.",
       },
+      { property: "og:title", content: "Login or Sign Up — CricMaster" },
+      {
+        property: "og:description",
+        content:
+          "Create a free CricMaster account to sync your matches, scorecards and career stats across devices.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://cricmaster1.lovable.app/auth" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://cricmaster1.lovable.app/auth" }],
   }),
   component: AuthPage,
 });
+
+const friendlyError = (message: string) => {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login")) return "Email ya password galat hai. Dobara check karein.";
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return "Is email se account already hai — login karein ya password reset karein.";
+  if (m.includes("pwned") || m.includes("compromised"))
+    return "Ye password data breaches me mila hai. Koi strong password chunein.";
+  if (m.includes("rate limit") || m.includes("too many"))
+    return "Bahut zyada attempts. Thodi der baad try karein.";
+  if (m.includes("network") || m.includes("fetch"))
+    return "Network issue lag raha hai. Connection check karke retry karein.";
+  if (m.includes("email")) return message;
+  return message || "Kuch galat ho gaya. Dobara try karein.";
+};
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -27,6 +53,8 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -38,6 +66,18 @@ function AuthPage() {
     e.preventDefault();
     setError("");
     setInfo("");
+    const fe: Record<string, string> = {};
+    if (!email.trim()) fe.email = "Email zaroori hai.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+      fe.email = "Valid email address daalein.";
+    if (mode !== "forgot") {
+      if (!password) fe.password = "Password zaroori hai.";
+      else if (password.length < 6) fe.password = "Password kam se kam 6 characters ka ho.";
+    }
+    if (mode === "signup" && name.trim().length > 60)
+      fe.name = "Name 60 characters se kam rakhein.";
+    setFieldErrors(fe);
+    if (Object.keys(fe).length) return;
     setBusy(true);
     try {
       if (mode === "forgot") {
@@ -68,7 +108,7 @@ function AuthPage() {
         navigate({ to: "/career" });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kuch galat ho gaya");
+      setError(friendlyError(err instanceof Error ? err.message : ""));
     } finally {
       setBusy(false);
     }
@@ -137,41 +177,72 @@ function AuthPage() {
           </div>
           )}
 
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={submit} noValidate className="space-y-3">
             {mode === "signup" && (
               <div>
-                <label className="mb-1 block text-sm font-medium">Name</label>
+                <label htmlFor="a-name" className="mb-1 block text-sm font-medium">Name</label>
                 <input
+                  id="a-name"
                   value={name}
+                  maxLength={60}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
+                {fieldErrors.name && (
+                  <p className="mt-1 text-xs font-medium text-destructive">{fieldErrors.name}</p>
+                )}
               </div>
             )}
             <div>
-              <label className="mb-1 block text-sm font-medium">Email</label>
+              <label htmlFor="a-email" className="mb-1 block text-sm font-medium">Email</label>
               <input
+                id="a-email"
                 type="email"
-                required
                 value={email}
+                maxLength={255}
+                autoComplete="email"
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                aria-invalid={!!fieldErrors.email}
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring ${
+                  fieldErrors.email ? "border-destructive" : "border-input"
+                }`}
               />
+              {fieldErrors.email && (
+                <p className="mt-1 text-xs font-medium text-destructive">{fieldErrors.email}</p>
+              )}
             </div>
             {mode !== "forgot" && (
             <div>
-              <label className="mb-1 block text-sm font-medium">Password</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
+              <label htmlFor="a-pw" className="mb-1 block text-sm font-medium">Password</label>
+              <div className="relative">
+                <input
+                  id="a-pw"
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  aria-invalid={!!fieldErrors.password}
+                  className={`w-full rounded-lg border bg-background px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-ring ${
+                    fieldErrors.password ? "border-destructive" : "border-input"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((v) => !v)}
+                  aria-label={showPw ? "Hide password" : "Show password"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                >
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {fieldErrors.password ? (
+                <p className="mt-1 text-xs font-medium text-destructive">{fieldErrors.password}</p>
+              ) : mode === "signup" ? (
+                <p className="mt-1 text-xs text-muted-foreground">Kam se kam 6 characters.</p>
+              ) : null}
             </div>
             )}
 
@@ -187,7 +258,11 @@ function AuthPage() {
               </div>
             )}
 
-            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+            {error && (
+              <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+                {error}
+              </p>
+            )}
             {info && <p className="text-sm font-medium text-primary">{info}</p>}
 
             <button

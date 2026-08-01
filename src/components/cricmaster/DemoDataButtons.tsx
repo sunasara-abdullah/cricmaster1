@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { seedDemoData, clearAllData, isDemoSeeded } from "@/lib/demoData";
+import { toast } from "sonner";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 
 /**
  * Renders inside an empty-state card. Shows a "Load Sample Data" button so a
@@ -28,23 +30,35 @@ export function DemoDataButtons({ compact = false }: { compact?: boolean }) {
     >
       <button
         type="button"
-        onClick={() => seedDemoData()}
+        onClick={() => {
+          try {
+            seedDemoData();
+            toast.success("Sample teams, matches, players aur leagues load ho gaye");
+          } catch {
+            toast.error("Sample data load nahi ho paya. Dobara try karein.");
+          }
+        }}
         className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
       >
         ⚡ Try demo
       </button>
       {seeded && (
-        <button
-          type="button"
-          onClick={() => {
-            if (confirm("Clear all demo data? This removes sample teams, matches and leagues.")) {
+        <ConfirmButton
+          title="Clear all demo data?"
+          description="Sample teams, matches, players and leagues remove ho jayenge. Ye undo nahi hoga."
+          confirmLabel="Clear data"
+          onConfirm={() => {
+            try {
               clearAllData();
+              toast.success("Demo data cleared");
+            } catch {
+              toast.error("Demo data clear nahi ho paya.");
             }
           }}
           className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-destructive"
         >
           Clear demo data
-        </button>
+        </ConfirmButton>
       )}
     </div>
   );

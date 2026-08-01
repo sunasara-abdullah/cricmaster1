@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import {
   type Team,
@@ -9,6 +11,10 @@ import {
   teamRecord,
 } from "@/lib/teams";
 import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
+import { LoadMore } from "@/components/cricmaster/LoadMore";
+
+const PAGE = 12;
 
 export const Route = createFileRoute("/teams")({
   head: () => ({
@@ -53,16 +59,56 @@ function TeamsPage() {
   const teams = useTeams();
   const [name, setName] = useState("");
   const [ground, setGround] = useState("");
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [limit, setLimit] = useState(PAGE);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    upsertTeam({ name, homeGround: ground });
-    setName("");
-    setGround("");
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("Team ka naam zaroori hai.");
+      return;
+    }
+    if (trimmed.length < 2) {
+      setError("Team name kam se kam 2 characters ka hona chahiye.");
+      return;
+    }
+    if (trimmed.length > 40) {
+      setError("Team name 40 characters se kam rakhein.");
+      return;
+    }
+    if (teams.some((t) => t.name.toLowerCase() === trimmed.toLowerCase())) {
+      setError(`"${trimmed}" naam ki team already exist karti hai.`);
+      return;
+    }
+    if (ground.trim().length > 60) {
+      setError("Home ground 60 characters se kam rakhein.");
+      return;
+    }
+    try {
+      upsertTeam({ name: trimmed, homeGround: ground.trim() });
+      toast.success(`Team "${trimmed}" added`);
+      setName("");
+      setGround("");
+      setError("");
+    } catch {
+      toast.error("Team save nahi ho payi. Dobara try karein.");
+    }
   };
 
-  const sorted = useMemo(() => teams, [teams]);
+  const sorted = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q
+      ? teams.filter(
+          (t) =>
+            t.name.toLowerCase().includes(q) ||
+            t.homeGround.toLowerCase().includes(q) ||
+            t.squad.some((p) => p.toLowerCase().includes(q)),
+        )
+      : teams;
+  }, [teams, query]);
+  const visible = sorted.slice(0, limit);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -79,16 +125,25 @@ function TeamsPage() {
 
         <form
           onSubmit={submit}
+          noValidate
           className="mb-8 grid gap-3 rounded-2xl border border-border bg-card p-5 sm:grid-cols-[1fr_1fr_auto]"
         >
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            maxLength={40}
+            aria-label="Team name"
+            aria-invalid={!!error}
+            onChange={(e) => {
+              setName(e.target.value);
+              setError("");
+            }}
             placeholder="Team name"
             className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary"
           />
           <input
             value={ground}
+            maxLength={60}
+            aria-label="Home ground"
             onChange={(e) => setGround(e.target.value)}
             placeholder="Home ground (optional)"
             className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary"
@@ -99,9 +154,39 @@ function TeamsPage() {
           >
             Add Team
           </button>
+          {error && (
+            <p role="alert" className="text-xs font-medium text-destructive sm:col-span-3">
+              {error}
+            </p>
+          )}
         </form>
 
-        {sorted.length === 0 ? (
+        {teams.length > 3 && (
+          <div className="relative mb-6 max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setLimit(PAGE);
+              }}
+              placeholder="Search team, ground or player"
+              aria-label="Search teams"
+              className="w-full rounded-xl border border-border bg-background py-2.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
+            />
+            {query && (
+              <button
+                onClick={() => setQuery("")}
+                aria-label="Clear team search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {teams.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
             <p className="text-lg font-medium">No teams yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -109,9 +194,14 @@ function TeamsPage() {
             </p>
             <DemoDataButtons />
           </div>
+        ) : sorted.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-10 text-center">
+            <p className="text-lg font-medium">No teams match "{query}"</p>
+          </div>
         ) : (
+          <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {sorted.map((t) => {
+            {visible.map((t) => {
               const rec = teamRecord(t.name);
               return (
                 <div
@@ -154,18 +244,32 @@ function TeamsPage() {
                       </span>
                     </div>
                   </Link>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Delete team "${t.name}"?`)) deleteTeam(t.name);
+                  <ConfirmButton
+                    title={`Delete team "${t.name}"?`}
+                    description="Team profile aur squad delete ho jayegi. Saved match scorecards par asar nahi hoga."
+                    onConfirm={() => {
+                      try {
+                        deleteTeam(t.name);
+                        toast.success(`Team "${t.name}" deleted`);
+                      } catch {
+                        toast.error("Team delete nahi ho payi. Dobara try karein.");
+                      }
                     }}
-                    className="absolute right-4 top-4 text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                    className="absolute right-4 top-4 text-xs text-muted-foreground transition-opacity hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
                   >
                     Delete
-                  </button>
+                  </ConfirmButton>
                 </div>
               );
             })}
           </div>
+          <LoadMore
+            shown={visible.length}
+            total={sorted.length}
+            noun="teams"
+            onMore={() => setLimit((l) => l + PAGE)}
+          />
+          </>
         )}
       </main>
     </div>

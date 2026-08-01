@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
+import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { oversText } from "@/lib/cricket";
 import {
   type PlayerProfile,
@@ -62,9 +63,11 @@ function ProfilePage() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <Link to="/players" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back to dashboard
-        </Link>
+        <Breadcrumbs
+          backTo="/players"
+          backLabel="All players"
+          items={[{ label: "Players", to: "/players" }, { label: name }]}
+        />
 
         {ready && !player ? (
           <div className="mt-8 rounded-2xl border border-border bg-card p-10 text-center">

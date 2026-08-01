@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import {
   type PlayerProfile,
@@ -10,6 +11,9 @@ import {
   bestFigures,
 } from "@/lib/playerStats";
 import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
+import { LoadMore } from "@/components/cricmaster/LoadMore";
+
+const PAGE = 25;
 
 export const Route = createFileRoute("/players")({
   head: () => ({
@@ -54,10 +58,24 @@ function useStats() {
 
 function PlayersPage() {
   const { store, ready } = useStats();
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState<"all" | "batting" | "bowling">("all");
+  const [limit, setLimit] = useState(PAGE);
   const players = useMemo(
     () => Object.values(store).sort((a, b) => b.batting.runs - a.batting.runs),
     [store],
   );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return players.filter((p) => {
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      if (role === "batting" && p.batting.innings === 0) return false;
+      if (role === "bowling" && p.bowling.balls === 0) return false;
+      return true;
+    });
+  }, [players, query, role]);
+  const visible = filtered.slice(0, limit);
 
   const topBat = useMemo(
     () => [...players].sort((a, b) => b.batting.runs - a.batting.runs).slice(0, 5),
@@ -129,10 +147,49 @@ function PlayersPage() {
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="border-b border-border bg-white/[0.02] px-4 py-3">
+              <div className="flex flex-wrap items-center gap-3 border-b border-border bg-white/[0.02] px-4 py-3">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   All Players
                 </h2>
+                <div className="ml-auto flex flex-wrap items-center gap-2">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setLimit(PAGE);
+                      }}
+                      placeholder="Search player"
+                      aria-label="Search players"
+                      className="w-44 rounded-lg border border-border bg-background py-1.5 pl-8 pr-2 text-xs outline-none focus:border-primary"
+                    />
+                  </div>
+                  <select
+                    value={role}
+                    onChange={(e) => {
+                      setRole(e.target.value as "all" | "batting" | "bowling");
+                      setLimit(PAGE);
+                    }}
+                    aria-label="Filter players by role"
+                    className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary"
+                  >
+                    <option value="all">All</option>
+                    <option value="batting">Batters</option>
+                    <option value="bowling">Bowlers</option>
+                  </select>
+                  {(query || role !== "all") && (
+                    <button
+                      onClick={() => {
+                        setQuery("");
+                        setRole("all");
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="size-3.5" /> Clear
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-sm">
@@ -148,7 +205,14 @@ function PlayersPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {players.map((p) => {
+                    {visible.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          No players match your search.
+                        </td>
+                      </tr>
+                    )}
+                    {visible.map((p) => {
                       const avg = battingAverage(p.batting);
                       return (
                         <tr key={p.name} className="border-b border-border/60 hover:bg-white/[0.02]">
@@ -180,6 +244,12 @@ function PlayersPage() {
                 </table>
               </div>
             </div>
+            <LoadMore
+              shown={visible.length}
+              total={filtered.length}
+              noun="players"
+              onMore={() => setLimit((l) => l + PAGE)}
+            />
           </>
         )}
       </main>
