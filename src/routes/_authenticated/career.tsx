@@ -12,6 +12,8 @@ import {
 } from "@/lib/career";
 import { exportCareerPdf, exportMatchPdf } from "@/lib/careerExport";
 import { useAuth } from "@/hooks/useAuth";
+import { listTeams, teamRecord } from "@/lib/teams";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/career")({
   head: () => ({
@@ -93,10 +95,16 @@ function CareerPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Is match ko career se delete karein?")) return;
-    await deleteCareerMatch(id);
-    load();
+    try {
+      await deleteCareerMatch(id);
+      toast.success("Match career se delete ho gaya");
+      load();
+    } catch {
+      toast.error("Delete nahi ho paya. Connection check karke dobara try karein.");
+    }
   };
+
+  const myTeams = useMemo(() => listTeams().slice(0, 6), [matches]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -144,6 +152,32 @@ function CareerPage() {
             </div>
           ))}
         </div>
+
+        {myTeams.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Your Teams
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {myTeams.map((t) => {
+                const rec = teamRecord(t.name);
+                return (
+                  <Link
+                    key={t.name}
+                    to="/teams/$name"
+                    params={{ name: t.name }}
+                    className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/50"
+                  >
+                    <p className="font-heading text-lg font-bold">{t.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {rec.played} played · {rec.won} won · {t.squad.length} players
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {matches.length > 0 && (
           <div className="mb-6 rounded-2xl border border-border bg-card p-4">
