@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import {
   type LeagueStore,
@@ -8,6 +9,7 @@ import {
   deleteLeague,
 } from "@/lib/leagues";
 import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 
 export const Route = createFileRoute("/leagues")({
   head: () => ({
@@ -61,13 +63,40 @@ function LeaguesPage() {
   );
   const [name, setName] = useState("");
   const [season, setSeason] = useState("");
+  const [error, setError] = useState("");
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    createLeague(name, season || new Date().getFullYear().toString());
-    setName("");
-    setSeason("");
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("League ka naam zaroori hai.");
+      return;
+    }
+    if (trimmed.length < 3) {
+      setError("League name kam se kam 3 characters ka hona chahiye.");
+      return;
+    }
+    if (trimmed.length > 50) {
+      setError("League name 50 characters se kam rakhein.");
+      return;
+    }
+    if (leagues.some((l) => l.name.toLowerCase() === trimmed.toLowerCase())) {
+      setError(`"${trimmed}" naam ki league already exist karti hai.`);
+      return;
+    }
+    if (season.trim().length > 20) {
+      setError("Season 20 characters se kam rakhein.");
+      return;
+    }
+    try {
+      createLeague(trimmed, season.trim() || new Date().getFullYear().toString());
+      toast.success(`League "${trimmed}" created`);
+      setName("");
+      setSeason("");
+      setError("");
+    } catch {
+      toast.error("League create nahi ho payi. Dobara try karein.");
+    }
   };
 
   return (
@@ -85,16 +114,25 @@ function LeaguesPage() {
 
         <form
           onSubmit={submit}
+          noValidate
           className="mb-8 grid gap-3 rounded-2xl border border-border bg-card p-5 sm:grid-cols-[1fr_180px_auto]"
         >
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            maxLength={50}
+            aria-label="League name"
+            aria-invalid={!!error}
+            onChange={(e) => {
+              setName(e.target.value);
+              setError("");
+            }}
             placeholder="League name (e.g. Premier T20 Cup)"
             className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary"
           />
           <input
             value={season}
+            maxLength={20}
+            aria-label="Season"
             onChange={(e) => setSeason(e.target.value)}
             placeholder="Season (e.g. 2026)"
             className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary"
@@ -105,6 +143,11 @@ function LeaguesPage() {
           >
             Create League
           </button>
+          {error && (
+            <p role="alert" className="text-xs font-medium text-destructive sm:col-span-3">
+              {error}
+            </p>
+          )}
         </form>
 
         {!ready ? (
@@ -164,15 +207,21 @@ function LeaguesPage() {
                       </span>
                     </div>
                   </Link>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Delete league "${l.name}"?`))
+                  <ConfirmButton
+                    title={`Delete league "${l.name}"?`}
+                    description="League, uske teams aur poora schedule permanently delete ho jayega."
+                    onConfirm={() => {
+                      try {
                         deleteLeague(l.id);
+                        toast.success(`League "${l.name}" deleted`);
+                      } catch {
+                        toast.error("League delete nahi ho payi. Dobara try karein.");
+                      }
                     }}
-                    className="absolute right-4 top-4 text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                    className="absolute right-4 top-4 text-xs text-muted-foreground transition-opacity hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
                   >
                     Delete
-                  </button>
+                  </ConfirmButton>
                 </div>
               );
             })}
