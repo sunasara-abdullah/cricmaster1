@@ -101,6 +101,67 @@ function MatchesPage() {
           </p>
         </header>
 
+        {matches.length > 0 && (
+          <div className="mb-6 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="relative lg:col-span-2">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setLimit(PAGE);
+                }}
+                placeholder="Search team, venue, result or MoM"
+                aria-label="Search matches"
+                className={`${field} w-full pl-9`}
+              />
+            </div>
+            <select
+              value={team}
+              onChange={(e) => {
+                setTeam(e.target.value);
+                setLimit(PAGE);
+              }}
+              aria-label="Filter by team"
+              className={field}
+            >
+              <option value="">All teams</option>
+              {teams.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              aria-label="From date"
+              className={field}
+            />
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              aria-label="To date"
+              className={field}
+            />
+            {hasFilters && (
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setTeam("");
+                  setFrom("");
+                  setTo("");
+                }}
+                className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground sm:col-span-2 lg:col-span-5"
+              >
+                <X className="size-3.5" /> Clear filters
+              </button>
+            )}
+          </div>
+        )}
+
         {!ready ? (
           <ul className="space-y-4" aria-label="Loading matches">
             {[0, 1, 2].map((i) => (
@@ -123,9 +184,17 @@ function MatchesPage() {
               <DemoDataButtons compact />
             </div>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-10 text-center">
+            <p className="text-lg font-medium">No matches match your filters</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try a different search term or clear the filters.
+            </p>
+          </div>
         ) : (
+          <>
           <ul className="space-y-4">
-            {matches.map((m) => {
+            {visible.map((m) => {
               const i1 = m.innings[0];
               const i2 = m.innings[1];
               return (
@@ -162,18 +231,32 @@ function MatchesPage() {
                       {m.manOfTheMatch ? ` · MoM: ${m.manOfTheMatch}` : ""}
                     </p>
                   </Link>
-                  <button
-                    onClick={() => {
-                      if (confirm("Delete this match?")) deleteMatch(m.id);
+                  <ConfirmButton
+                    title="Delete this match?"
+                    description={`"${m.teamA} vs ${m.teamB}" ka scorecard permanently delete ho jayega.`}
+                    onConfirm={() => {
+                      try {
+                        deleteMatch(m.id);
+                        toast.success("Match deleted");
+                      } catch {
+                        toast.error("Match delete nahi ho paya. Dobara try karein.");
+                      }
                     }}
-                    className="absolute right-4 top-4 text-xs text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                    className="absolute right-4 top-4 text-xs text-muted-foreground transition-opacity hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
                   >
                     Delete
-                  </button>
+                  </ConfirmButton>
                 </li>
               );
             })}
           </ul>
+          <LoadMore
+            shown={visible.length}
+            total={filtered.length}
+            noun="matches"
+            onMore={() => setLimit((l) => l + PAGE)}
+          />
+          </>
         )}
       </main>
     </div>
