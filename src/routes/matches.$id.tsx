@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
+import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { getMatch, type InningsCard, type SavedMatch } from "@/lib/matchHistory";
 import { oversText, strikeRate, economy } from "@/lib/cricket";
 
@@ -74,12 +75,14 @@ function ScorecardPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <Link
-          to="/matches"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← All matches
-        </Link>
+        <Breadcrumbs
+          backTo="/matches"
+          backLabel="All matches"
+          items={[
+            { label: "Matches", to: "/matches" },
+            { label: match ? `${match.teamA} vs ${match.teamB}` : "Scorecard" },
+          ]}
+        />
         {match && (
           <>
             <header className="mb-6 mt-3">

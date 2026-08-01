@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/cricmaster/Navbar";
+import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import {
   type League,
   type MatchStage,
@@ -66,12 +67,11 @@ function LeagueDetailPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <Link
-          to="/leagues"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← All leagues
-        </Link>
+        <Breadcrumbs
+          backTo="/leagues"
+          backLabel="All leagues"
+          items={[{ label: "Leagues", to: "/leagues" }, { label: league.name }]}
+        />
         <header className="mb-8 mt-2">
           <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
             {league.season || "Season"}
