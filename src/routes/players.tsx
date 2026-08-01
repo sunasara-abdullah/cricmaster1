@@ -244,6 +244,12 @@ function PlayersPage() {
                 </table>
               </div>
             </div>
+            <LoadMore
+              shown={visible.length}
+              total={filtered.length}
+              noun="players"
+              onMore={() => setLimit((l) => l + PAGE)}
+            />
           </>
         )}
       </main>
