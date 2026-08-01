@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import {
   type PlayerProfile,
@@ -10,6 +11,9 @@ import {
   bestFigures,
 } from "@/lib/playerStats";
 import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
+import { LoadMore } from "@/components/cricmaster/LoadMore";
+
+const PAGE = 25;
 
 export const Route = createFileRoute("/players")({
   head: () => ({
@@ -54,10 +58,24 @@ function useStats() {
 
 function PlayersPage() {
   const { store, ready } = useStats();
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState<"all" | "batting" | "bowling">("all");
+  const [limit, setLimit] = useState(PAGE);
   const players = useMemo(
     () => Object.values(store).sort((a, b) => b.batting.runs - a.batting.runs),
     [store],
   );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return players.filter((p) => {
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      if (role === "batting" && p.batting.innings === 0) return false;
+      if (role === "bowling" && p.bowling.balls === 0) return false;
+      return true;
+    });
+  }, [players, query, role]);
+  const visible = filtered.slice(0, limit);
 
   const topBat = useMemo(
     () => [...players].sort((a, b) => b.batting.runs - a.batting.runs).slice(0, 5),
