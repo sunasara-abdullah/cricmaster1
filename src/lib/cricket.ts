@@ -47,6 +47,12 @@ export type MatchConfig = {
   /** optional link back to a league fixture */
   leagueId?: string;
   leagueMatchId?: string;
+  /** playing XI selected for each side (optional) */
+  lineupA?: string[];
+  lineupB?: string[];
+  /** cosmetic match metadata */
+  matchType?: string;
+  ballType?: "leather" | "tennis" | "other";
 };
 
 export const strikeRate = (runs: number, balls: number) =>
