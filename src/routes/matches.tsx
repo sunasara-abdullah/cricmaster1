@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { listMatches, deleteMatch, type SavedMatch } from "@/lib/matchHistory";
 import { oversText } from "@/lib/cricket";
-import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 import { LoadMore } from "@/components/cricmaster/LoadMore";
 
@@ -181,7 +180,6 @@ function MatchesPage() {
               >
                 Start Scoring
               </Link>
-              <DemoDataButtons compact />
             </div>
           </div>
         ) : filtered.length === 0 ? (

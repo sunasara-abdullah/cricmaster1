@@ -10,7 +10,6 @@ import {
   bowlingEcon,
   bestFigures,
 } from "@/lib/playerStats";
-import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 import { LoadMore } from "@/components/cricmaster/LoadMore";
 
 const PAGE = 25;
@@ -122,7 +121,6 @@ function PlayersPage() {
               >
                 Start Scoring
               </Link>
-              <DemoDataButtons compact />
             </div>
           </div>
         ) : (

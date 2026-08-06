@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MatchConfig } from "@/lib/cricket";
+import { listTeams, type Team } from "@/lib/teams";
 
 export function MatchSetup({
   onStart,
@@ -26,11 +27,31 @@ export function MatchSetup({
   const set = (k: keyof MatchConfig, v: string | number) =>
     setConfig((c) => ({ ...c, [k]: v }));
 
+  const [teams, setTeams] = useState<Team[]>([]);
+  useEffect(() => {
+    const sync = () => setTeams(listTeams());
+    sync();
+    window.addEventListener("cricmaster:teams-updated", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("cricmaster:teams-updated", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
   const battingFirst = useMemo(() => {
     const tw = config.tossWinner || config.teamA;
     const other = tw === config.teamA ? config.teamB : config.teamA;
     return config.tossDecision === "bat" ? tw : other;
   }, [config.tossWinner, config.tossDecision, config.teamA, config.teamB]);
+
+  const squadOf = (teamName: string) =>
+    teams.find((t) => t.name.toLowerCase() === teamName.trim().toLowerCase())
+      ?.squad ?? [];
+  const bowlingFirstTeam =
+    battingFirst === config.teamA ? config.teamB : config.teamA;
+  const battingSquad = squadOf(battingFirst);
+  const bowlingSquad = squadOf(bowlingFirstTeam);
 
   const field =
     "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary";
@@ -80,6 +101,7 @@ export function MatchSetup({
             <label className={labelCls}>Team A</label>
             <input
               className={field}
+              list="cm-teams"
               placeholder="e.g. Mumbai XI"
               value={config.teamA}
               onChange={(e) => {
@@ -93,12 +115,42 @@ export function MatchSetup({
             <label className={labelCls}>Team B</label>
             <input
               className={field}
+              list="cm-teams"
               placeholder="e.g. Delhi XI"
               value={config.teamB}
               onChange={(e) => set("teamB", e.target.value)}
             />
           </div>
+          <datalist id="cm-teams">
+            {teams.map((t) => (
+              <option key={t.name} value={t.name} />
+            ))}
+          </datalist>
         </div>
+
+        {teams.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Saved teams:
+            </span>
+            {teams.map((t) => (
+              <button
+                key={t.name}
+                type="button"
+                onClick={() =>
+                  setConfig((c) =>
+                    c.teamA.trim() === "" || c.teamA === t.name
+                      ? { ...c, teamA: t.name, tossWinner: c.tossWinner || t.name }
+                      : { ...c, teamB: t.name },
+                  )
+                }
+                className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-4">
           <div>
@@ -177,6 +229,7 @@ export function MatchSetup({
             <label className={labelCls}>Striker ({battingFirst})</label>
             <input
               className={field}
+              list="cm-batting-squad"
               placeholder="Striker name"
               value={config.striker}
               onChange={(e) => set("striker", e.target.value)}
@@ -186,21 +239,33 @@ export function MatchSetup({
             <label className={labelCls}>Non-Striker</label>
             <input
               className={field}
+              list="cm-batting-squad"
               placeholder="Non-striker name"
               value={config.nonStriker}
               onChange={(e) => set("nonStriker", e.target.value)}
             />
           </div>
+          <datalist id="cm-batting-squad">
+            {battingSquad.map((p) => (
+              <option key={p} value={p} />
+            ))}
+          </datalist>
         </div>
 
         <div>
           <label className={labelCls}>Opening Bowler</label>
           <input
             className={field}
+            list="cm-bowling-squad"
             placeholder="Bowler name"
             value={config.bowler}
             onChange={(e) => set("bowler", e.target.value)}
           />
+          <datalist id="cm-bowling-squad">
+            {bowlingSquad.map((p) => (
+              <option key={p} value={p} />
+            ))}
+          </datalist>
         </div>
 
         <button

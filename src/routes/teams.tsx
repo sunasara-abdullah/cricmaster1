@@ -10,7 +10,6 @@ import {
   deleteTeam,
   teamRecord,
 } from "@/lib/teams";
-import { DemoDataButtons } from "@/components/cricmaster/DemoDataButtons";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 import { LoadMore } from "@/components/cricmaster/LoadMore";
 
@@ -192,7 +191,6 @@ function TeamsPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Add a team above to start building squads.
             </p>
-            <DemoDataButtons />
           </div>
         ) : sorted.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
