@@ -559,10 +559,22 @@ export function Scoreboard({
                   4
                 </button>
                 <button
+                  onClick={() => score(5)}
+                  className={`${btnBase} border-b-2 border-muted-foreground/60`}
+                >
+                  5
+                </button>
+                <button
                   onClick={() => score(6)}
                   className={`${btnBase} border-b-2 border-primary text-primary`}
                 >
                   6
+                </button>
+                <button
+                  onClick={() => score(7)}
+                  className={`${btnBase} border-b-2 border-primary/60`}
+                >
+                  7
                 </button>
                 <button
                   onClick={wicket}
