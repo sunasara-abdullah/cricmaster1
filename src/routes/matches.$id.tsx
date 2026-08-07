@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { getMatch, type InningsCard, type SavedMatch } from "@/lib/matchHistory";
+import { exportMatchPdf } from "@/lib/careerExport";
 import { oversText, strikeRate, economy } from "@/lib/cricket";
 
 export const Route = createFileRoute("/matches/$id")({
@@ -52,6 +55,27 @@ function ScorecardPage() {
   const [match, setMatch] = useState<SavedMatch | undefined>(undefined);
   const [ready, setReady] = useState(false);
 
+  const downloadPdf = () => {
+    if (!match) return;
+    try {
+      exportMatchPdf({
+        id: match.id,
+        team_a: match.teamA,
+        team_b: match.teamB,
+        venue: match.venue ?? "",
+        overs: match.overs ?? 0,
+        result: match.result ?? "",
+        winner: match.winner ?? "",
+        man_of_the_match: match.manOfTheMatch ?? "",
+        played_at: match.date,
+        data: match,
+      });
+      toast.success("Scorecard PDF download ho gaya");
+    } catch {
+      toast.error("PDF banane me problem aayi, dobara try karein");
+    }
+  };
+
   useEffect(() => {
     setMatch(getMatch(id));
     setReady(true);
@@ -86,9 +110,19 @@ function ScorecardPage() {
         {match && (
           <>
             <header className="mb-6 mt-3">
-              <h1 className="font-heading text-3xl font-bold tracking-tight">
-                {match.teamA} vs {match.teamB}
-              </h1>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <h1 className="font-heading text-3xl font-bold tracking-tight">
+                  {match.teamA} vs {match.teamB}
+                </h1>
+                <button
+                  type="button"
+                  onClick={downloadPdf}
+                  className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-bold transition-colors hover:border-primary hover:text-primary"
+                >
+                  <Download className="size-4" />
+                  Download PDF
+                </button>
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">
                 {new Date(match.date).toLocaleString()} · {match.overs} overs ·{" "}
                 {match.venue}
