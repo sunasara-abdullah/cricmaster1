@@ -19,6 +19,7 @@ function InningsTable({ card }: { card: InningsCard }) {
         <thead>
           <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="px-3 py-2 font-bold">Batter</th>
+            <th className="px-2 py-2 font-bold">Dismissal</th>
             <th className="px-2 py-2 text-right font-bold">R</th>
             <th className="px-2 py-2 text-right font-bold">B</th>
             <th className="px-2 py-2 text-right font-bold">4s</th>
@@ -32,6 +33,9 @@ function InningsTable({ card }: { card: InningsCard }) {
             .map((b, i) => (
               <tr key={i} className="border-b border-border/50">
                 <td className="px-3 py-2 font-medium">{b.name}</td>
+                <td className="px-2 py-2 text-xs text-muted-foreground">
+                  {b.out ? (b.how ?? "out") : "not out"}
+                </td>
                 <td className="px-2 py-2 text-right font-mono">{b.runs}</td>
                 <td className="px-2 py-2 text-right font-mono text-muted-foreground">
                   {b.balls}
@@ -50,6 +54,17 @@ function InningsTable({ card }: { card: InningsCard }) {
         </tbody>
       </table>
       </div>
+
+      {card.extras && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-bold uppercase tracking-wider">Extras</span>
+          <span className="font-mono">
+            {card.extras.wd + card.extras.nb + card.extras.b + card.extras.lb} (wd{" "}
+            {card.extras.wd}, nb {card.extras.nb}, b {card.extras.b}, lb{" "}
+            {card.extras.lb})
+          </span>
+        </div>
+      )}
 
       <div className="overflow-x-auto border-t border-border">
       <table className="w-full min-w-[420px] text-sm">

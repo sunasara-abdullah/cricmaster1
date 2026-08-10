@@ -11,6 +11,8 @@ export type InningsCard = {
   balls: number;
   batters: Batter[];
   bowlers: Bowler[];
+  /** extras breakdown (optional for older saved matches) */
+  extras?: { wd: number; nb: number; b: number; lb: number };
 };
 
 export type SavedMatch = {

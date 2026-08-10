@@ -19,6 +19,8 @@ export type Batter = {
   fours: number;
   sixes: number;
   out: boolean;
+  /** dismissal description e.g. "b Rohit", "run out (Kohli)" */
+  how?: string;
 };
 
 export type Bowler = {

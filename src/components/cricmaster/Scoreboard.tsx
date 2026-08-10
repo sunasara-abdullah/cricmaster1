@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   type Batter,
@@ -17,6 +17,9 @@ import { publishLive } from "@/lib/liveShare";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+type Extras = { wd: number; nb: number; b: number; lb: number };
+type OverSummary = { n: number; runs: number; wickets: number; balls: string[] };
+
 type State = {
   runs: number;
   wickets: number;
@@ -28,6 +31,13 @@ type State = {
   log: string[];
   retired: Batter[];
   bowlerHistory: Bowler[];
+  extras: Extras;
+  freeHit: boolean;
+  partRuns: number;
+  partBalls: number;
+  overs: OverSummary[];
+  overStartRuns: number;
+  overStartWkts: number;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -54,6 +64,24 @@ const allBowlers = (s: State): Bowler[] => {
   return [...map.values()];
 };
 
+const WICKET_TYPES = [
+  "Bowled",
+  "Caught",
+  "LBW",
+  "Stumped",
+  "Hit wicket",
+  "Run out",
+  "Retired",
+] as const;
+type WicketType = (typeof WICKET_TYPES)[number];
+const BOWLER_CREDITED: WicketType[] = [
+  "Bowled",
+  "Caught",
+  "LBW",
+  "Stumped",
+  "Hit wicket",
+];
+
 export function Scoreboard({
   config,
   onReset,
@@ -66,8 +94,14 @@ export function Scoreboard({
   const battingFirst = config.battingFirst ?? config.teamA;
   const bowlingFirst =
     battingFirst === config.teamA ? config.teamB : config.teamA;
+  const lineupOf = (team: string) =>
+    (team === config.teamA ? config.lineupA : config.lineupB) ?? [];
 
-  const makeInit = (striker: string, nonStriker: string, bowler: string): State => ({
+  const makeInit = (
+    striker: string,
+    nonStriker: string,
+    bowler: string,
+  ): State => ({
     runs: 0,
     wickets: 0,
     legalBalls: 0,
@@ -78,6 +112,13 @@ export function Scoreboard({
     log: [],
     retired: [],
     bowlerHistory: [],
+    extras: { wd: 0, nb: 0, b: 0, lb: 0 },
+    freeHit: false,
+    partRuns: 0,
+    partBalls: 0,
+    overs: [],
+    overStartRuns: 0,
+    overStartWkts: 0,
   });
 
   const [shareId] = useState(uid);
@@ -93,11 +134,20 @@ export function Scoreboard({
   const [pendingBowler, setPendingBowler] = useState(false);
   const [nameInput, setNameInput] = useState("");
 
+  // extras + wicket dialogs
+  const [extraKind, setExtraKind] = useState<"wd" | "nb" | "b" | "lb" | null>(
+    null,
+  );
+  const [wicketOpen, setWicketOpen] = useState(false);
+  const [wType, setWType] = useState<WicketType>("Bowled");
+  const [fielder, setFielder] = useState("");
+  const [runOutEnd, setRunOutEnd] = useState<"striker" | "nonStriker">("striker");
+
   // second innings setup modal
   const [pendingSecond, setPendingSecond] = useState(false);
-  const [s2Striker, setS2Striker] = useState("Opener 1");
-  const [s2NonStriker, setS2NonStriker] = useState("Opener 2");
-  const [s2Bowler, setS2Bowler] = useState("Bowler 1");
+  const [s2Striker, setS2Striker] = useState("");
+  const [s2NonStriker, setS2NonStriker] = useState("");
+  const [s2Bowler, setS2Bowler] = useState("");
 
   // result / save
   const [mom, setMom] = useState("");
@@ -108,10 +158,14 @@ export function Scoreboard({
   const bowlingTeam = inningsNo === 1 ? bowlingFirst : battingFirst;
   const ballsLeft = totalBalls - state.legalBalls;
   const allOut = state.wickets >= playersPerTeam - 1;
-  const chaseDone =
-    inningsNo === 2 && target != null && state.runs >= target;
+  const chaseDone = inningsNo === 2 && target != null && state.runs >= target;
   const inningsDone = state.legalBalls >= totalBalls || allOut || chaseDone;
   const matchOver = inningsNo === 2 && inningsDone;
+
+  const battingLineup = lineupOf(battingTeam);
+  const bowlingLineup = lineupOf(bowlingTeam);
+  const usedBatters = new Set(allBatters(state).map((b) => b.name));
+  const availableBatters = battingLineup.filter((n) => !usedBatters.has(n));
 
   const clone = (s: State): State => ({
     ...s,
@@ -121,6 +175,8 @@ export function Scoreboard({
     log: [...s.log],
     retired: [...s.retired],
     bowlerHistory: [...s.bowlerHistory],
+    extras: { ...s.extras },
+    overs: s.overs.map((o) => ({ ...o, balls: [...o.balls] })),
   });
 
   const push = (next: State) => setHistory((h) => [...h, next]);
@@ -128,14 +184,33 @@ export function Scoreboard({
     s.strikerIdx = (s.strikerIdx === 0 ? 1 : 0) as 0 | 1;
   };
   const endOverCheck = (s: State) => {
-    if (s.legalBalls > 0 && s.legalBalls % 6 === 0 && s.legalBalls < totalBalls) {
-      swapStrike(s);
-      s.thisOver = [];
-      setTimeout(() => setPendingBowler(true), 0);
+    if (s.legalBalls > 0 && s.legalBalls % 6 === 0) {
+      s.overs = [
+        ...s.overs,
+        {
+          n: s.legalBalls / 6,
+          runs: s.runs - s.overStartRuns,
+          wickets: s.wickets - s.overStartWkts,
+          balls: [...s.thisOver],
+        },
+      ];
+      s.overStartRuns = s.runs;
+      s.overStartWkts = s.wickets;
+      if (s.legalBalls < totalBalls) {
+        swapStrike(s);
+        s.thisOver = [];
+        setTimeout(() => setPendingBowler(true), 0);
+      }
     }
   };
 
-  const blocked = inningsDone || pendingBatter || pendingBowler || pendingSecond;
+  const blocked =
+    inningsDone ||
+    pendingBatter ||
+    pendingBowler ||
+    pendingSecond ||
+    wicketOpen ||
+    extraKind !== null;
 
   const score = (runs: number) => {
     if (blocked) return;
@@ -149,38 +224,110 @@ export function Scoreboard({
     s.bowler.runs += runs;
     s.bowler.balls += 1;
     s.legalBalls += 1;
+    s.partRuns += runs;
+    s.partBalls += 1;
+    s.freeHit = false;
     s.thisOver.push(String(runs));
-    s.log.unshift(`${b.name} scored ${runs}`);
+    s.log.unshift(`${oversText(s.legalBalls)} ${b.name} — ${runs} run${runs === 1 ? "" : "s"}`);
     if (runs % 2 === 1) swapStrike(s);
     endOverCheck(s);
     push(s);
   };
 
-  const extra = (kind: "wd" | "nb") => {
-    if (blocked) return;
+  const applyExtra = (kind: "wd" | "nb" | "b" | "lb", n: number) => {
     const s = clone(state);
-    s.runs += 1;
-    s.bowler.runs += 1;
-    s.thisOver.push(kind);
-    s.log.unshift(`${kind === "wd" ? "Wide" : "No ball"} +1`);
+    const b = s.batters[s.strikerIdx];
+    if (kind === "wd") {
+      const total = 1 + n;
+      s.runs += total;
+      s.bowler.runs += total;
+      s.extras.wd += total;
+      s.partRuns += total;
+      s.thisOver.push(n ? `wd+${n}` : "wd");
+      s.log.unshift(`Wide${n ? ` + ${n}` : ""} — ${total} run${total === 1 ? "" : "s"}`);
+      if (n % 2 === 1) swapStrike(s);
+    } else if (kind === "nb") {
+      s.runs += 1 + n;
+      s.bowler.runs += 1 + n;
+      s.extras.nb += 1;
+      b.runs += n;
+      if (n === 4) b.fours += 1;
+      if (n === 6) b.sixes += 1;
+      s.partRuns += 1 + n;
+      s.freeHit = true;
+      s.thisOver.push(n ? `nb+${n}` : "nb");
+      s.log.unshift(`No ball${n ? ` + ${n}` : ""} — free hit next`);
+      if (n % 2 === 1) swapStrike(s);
+    } else {
+      // byes / leg byes — legal delivery, bowler not charged
+      s.runs += n;
+      s.bowler.balls += 1;
+      b.balls += 1;
+      s.legalBalls += 1;
+      s.partRuns += n;
+      s.partBalls += 1;
+      s.freeHit = false;
+      if (kind === "b") s.extras.b += n;
+      else s.extras.lb += n;
+      s.thisOver.push(`${kind}${n}`);
+      s.log.unshift(`${kind === "b" ? "Bye" : "Leg bye"} — ${n}`);
+      if (n % 2 === 1) swapStrike(s);
+      endOverCheck(s);
+    }
+    setExtraKind(null);
     push(s);
   };
 
-  const wicket = () => {
-    if (blocked) return;
+  const confirmWicket = () => {
     const s = clone(state);
-    const b = s.batters[s.strikerIdx];
-    b.balls += 1;
-    b.out = true;
-    s.wickets += 1;
-    s.bowler.balls += 1;
-    s.bowler.wickets += 1;
-    s.legalBalls += 1;
-    s.thisOver.push("W");
-    s.log.unshift(`${b.name} OUT`);
+    const outIdx =
+      wType === "Run out" && runOutEnd === "nonStriker"
+        ? ((s.strikerIdx === 0 ? 1 : 0) as 0 | 1)
+        : s.strikerIdx;
+    const b = s.batters[outIdx];
+    const isRunOut = wType === "Run out";
+    const retired = wType === "Retired";
+
+    if (!retired) {
+      b.out = true;
+      b.how = isRunOut
+        ? `run out${fielder.trim() ? ` (${fielder.trim()})` : ""}`
+        : wType === "Caught"
+          ? `c ${fielder.trim() || "fielder"} b ${s.bowler.name}`
+          : wType === "Stumped"
+            ? `st ${fielder.trim() || "wk"} b ${s.bowler.name}`
+            : `${wType.toLowerCase()} b ${s.bowler.name}`;
+      s.wickets += 1;
+    } else {
+      b.how = "retired";
+    }
+
+    if (!retired) {
+      // every dismissal except retired is off a delivery
+      s.batters[s.strikerIdx].balls += 1;
+      s.bowler.balls += 1;
+      s.legalBalls += 1;
+      s.partBalls += 1;
+      if (BOWLER_CREDITED.includes(wType)) s.bowler.wickets += 1;
+      s.thisOver.push("W");
+    }
+    s.freeHit = false;
+    s.partRuns = 0;
+    s.partBalls = 0;
+    s.log.unshift(
+      retired ? `${b.name} retired` : `${b.name} OUT — ${b.how ?? wType}`,
+    );
+
+    // the dismissed batter must be replaced at their slot
+    s.retired.push({ ...b });
+    s.batters[outIdx] = mkBatter("");
+    if (!retired) endOverCheck(s);
     push(s);
+
+    setWicketOpen(false);
+    setFielder("");
     if (s.wickets < playersPerTeam - 1 && s.legalBalls < totalBalls) {
-      setNameInput("");
+      setNameInput(availableBatters[0] ?? "");
       setPendingBatter(true);
     }
   };
@@ -188,17 +335,11 @@ export function Scoreboard({
   const confirmBatter = () => {
     const name = nameInput.trim() || "New Batter";
     const s = clone(state);
-    s.retired.push({ ...s.batters[s.strikerIdx] });
-    s.batters[s.strikerIdx] = mkBatter(name);
+    const slot = s.batters[0].name === "" ? 0 : s.batters[1].name === "" ? 1 : s.strikerIdx;
+    s.batters[slot] = mkBatter(name);
     push(s);
     setPendingBatter(false);
-    if (s.legalBalls > 0 && s.legalBalls % 6 === 0 && s.legalBalls < totalBalls) {
-      const s2 = clone(s);
-      swapStrike(s2);
-      s2.thisOver = [];
-      push(s2);
-      setPendingBowler(true);
-    }
+    setNameInput("");
   };
 
   const confirmBowler = () => {
@@ -213,12 +354,13 @@ export function Scoreboard({
     setNameInput("");
   };
 
-  const undo = () => {
-    if (history.length <= 1) return;
-    setHistory((h) => h.slice(0, -1));
+  const undo = useCallback(() => {
+    setHistory((h) => (h.length <= 1 ? h : h.slice(0, -1)));
     setPendingBatter(false);
     setPendingBowler(false);
-  };
+    setWicketOpen(false);
+    setExtraKind(null);
+  }, []);
 
   const buildCard = (): InningsCard => ({
     battingTeam,
@@ -226,8 +368,9 @@ export function Scoreboard({
     runs: state.runs,
     wickets: state.wickets,
     balls: state.legalBalls,
-    batters: allBatters(state),
+    batters: allBatters(state).filter((b) => b.name),
     bowlers: allBowlers(state),
+    extras: { ...state.extras },
   });
 
   const startSecond = () => {
@@ -235,9 +378,31 @@ export function Scoreboard({
     setFirstInnings(card);
     setTarget(card.runs + 1);
     setInningsNo(2);
-    setHistory([makeInit(s2Striker, s2NonStriker, s2Bowler)]);
+    setHistory([
+      makeInit(
+        s2Striker.trim() || "Opener 1",
+        s2NonStriker.trim() || "Opener 2",
+        s2Bowler.trim() || "Bowler 1",
+      ),
+    ]);
     setPendingSecond(false);
   };
+
+  // keyboard shortcuts for fast scoring
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && ["INPUT", "SELECT", "TEXTAREA"].includes(el.tagName)) return;
+      if (blocked && e.key !== "u") return;
+      if (/^[0-7]$/.test(e.key)) score(Number(e.key));
+      else if (e.key === "w" || e.key === "W") setWicketOpen(true);
+      else if (e.key === "u" || e.key === "U") undo();
+      else if (e.key === "d" || e.key === "D") setExtraKind("wd");
+      else if (e.key === "n" || e.key === "N") setExtraKind("nb");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   // result
   const result = useMemo(() => {
@@ -260,7 +425,6 @@ export function Scoreboard({
     return bowlingTeam;
   }, [matchOver, firstInnings, state.runs, battingTeam, bowlingTeam]);
 
-  // default MoM = top scorer across both innings
   const allMatchPlayers = useMemo(() => {
     const names = new Set<string>();
     if (firstInnings) firstInnings.batters.forEach((b) => names.add(b.name));
@@ -274,10 +438,7 @@ export function Scoreboard({
     if (matchOver && !mom && allMatchPlayers.length) {
       let best = allMatchPlayers[0];
       let bestRuns = -1;
-      const cards = [
-        ...(firstInnings?.batters ?? []),
-        ...allBatters(state),
-      ];
+      const cards = [...(firstInnings?.batters ?? []), ...allBatters(state)];
       for (const b of cards) {
         if (b.runs > bestRuns) {
           bestRuns = b.runs;
@@ -294,33 +455,29 @@ export function Scoreboard({
     let rec;
     try {
       rec = saveMatch({
-      date: new Date().toISOString(),
-      venue: config.venue,
-      overs: config.overs,
-      teamA: battingFirst,
-      teamB: bowlingFirst,
-      toss: config.tossWinner
-        ? `${config.tossWinner} won the toss & chose to ${config.tossDecision}`
-        : "",
-      innings: [firstInnings, second],
-      result,
-      manOfTheMatch: mom,
-      winner: winner === "tie" ? "" : winner,
-      leagueId: config.leagueId,
-      leagueMatchId: config.leagueMatchId,
+        date: new Date().toISOString(),
+        venue: config.venue,
+        overs: config.overs,
+        teamA: battingFirst,
+        teamB: bowlingFirst,
+        toss: config.tossWinner
+          ? `${config.tossWinner} won the toss & chose to ${config.tossDecision}`
+          : "",
+        innings: [firstInnings, second],
+        result,
+        manOfTheMatch: mom,
+        winner: winner === "tie" ? "" : winner,
+        leagueId: config.leagueId,
+        leagueMatchId: config.leagueMatchId,
       });
     } catch (err) {
       toast.error("Match save nahi hua. Dobara try karein.");
       console.error(err);
       return;
     }
-    // lifetime stats from both innings
     commitMatch(firstInnings.batters, firstInnings.bowlers);
     commitMatch(second.batters, second.bowlers);
-    // league result
     if (config.leagueId && config.leagueMatchId) {
-      const homeIsBattingFirst = true; // we map teamA(home) = battingFirst
-      void homeIsBattingFirst;
       recordLeagueResult(config.leagueId, config.leagueMatchId, {
         result,
         winner: winner === "tie" ? "tie" : winner,
@@ -334,7 +491,6 @@ export function Scoreboard({
       });
     }
     setSavedId(rec.id);
-    // Also save to the signed-in user's cloud career (no-op if signed out)
     void saveCareerMatch(rec);
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
@@ -405,6 +561,10 @@ export function Scoreboard({
   }, [state.runs, state.legalBalls, totalBalls]);
 
   const need = target != null ? Math.max(0, target - state.runs) : null;
+  const rrr =
+    need != null && ballsLeft > 0 ? ((need / ballsLeft) * 6).toFixed(2) : null;
+  const extrasTotal =
+    state.extras.wd + state.extras.nb + state.extras.b + state.extras.lb;
 
   return (
     <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 sm:py-8">
@@ -432,9 +592,19 @@ export function Scoreboard({
                 CRR: {crr} • Proj: {projected} • Balls left:{" "}
                 {Math.max(0, ballsLeft)}
               </div>
+              <div className="text-center text-xs text-muted-foreground">
+                Extras {extrasTotal} • Partnership {state.partRuns} (
+                {state.partBalls})
+              </div>
+              {state.freeHit && (
+                <div className="mt-1 rounded-full bg-destructive/15 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-destructive">
+                  Free hit
+                </div>
+              )}
               {need != null && !matchOver && (
                 <div className="mt-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-bold text-primary">
-                  Need {need} from {Math.max(0, ballsLeft)} balls (Target {target})
+                  Need {need} from {Math.max(0, ballsLeft)} balls
+                  {rrr ? ` • RRR ${rrr}` : ""}
                 </div>
               )}
               {inningsDone && inningsNo === 1 && (
@@ -455,10 +625,10 @@ export function Scoreboard({
                 {state.thisOver.map((l, i) => (
                   <span
                     key={i}
-                    className={`flex size-8 items-center justify-center rounded-full text-xs font-bold ${
+                    className={`flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-xs font-bold ${
                       l === "W"
                         ? "bg-destructive text-destructive-foreground"
-                        : l === "4" || l === "6"
+                        : l === "4" || l === "6" || l === "7"
                           ? "bg-primary text-primary-foreground"
                           : "bg-secondary text-foreground"
                     }`}
@@ -468,6 +638,27 @@ export function Scoreboard({
                 ))}
               </div>
             </div>
+
+            {state.overs.length > 0 && (
+              <div className="border-t border-border p-4">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Over by over
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {state.overs.map((o) => (
+                    <span
+                      key={o.n}
+                      className="rounded-lg border border-border px-2 py-1 text-[11px] font-mono text-muted-foreground"
+                    >
+                      Ov {o.n}: <span className="text-foreground">{o.runs}</span>
+                      {o.wickets > 0 && (
+                        <span className="text-destructive">/{o.wickets}</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* End of 1st innings CTA */}
@@ -577,15 +768,15 @@ export function Scoreboard({
                   7
                 </button>
                 <button
-                  onClick={wicket}
+                  onClick={() => setWicketOpen(true)}
                   className="aspect-square rounded-lg border border-destructive/30 bg-destructive/10 text-xs font-bold text-destructive transition-transform hover:bg-destructive/20 active:scale-95 sm:text-base"
                 >
                   WICKET
                 </button>
-                <button onClick={() => extra("wd")} className={btnAlt}>
+                <button onClick={() => setExtraKind("wd")} className={btnAlt}>
                   WIDE
                 </button>
-                <button onClick={() => extra("nb")} className={btnAlt}>
+                <button onClick={() => setExtraKind("nb")} className={btnAlt}>
                   NO BALL
                 </button>
                 <button
@@ -593,6 +784,31 @@ export function Scoreboard({
                   className="aspect-square rounded-lg bg-primary/10 font-bold text-primary underline underline-offset-4 transition-transform hover:bg-primary/20 active:scale-95"
                 >
                   UNDO
+                </button>
+                <button onClick={() => setExtraKind("b")} className={btnAlt}>
+                  BYE
+                </button>
+                <button onClick={() => setExtraKind("lb")} className={btnAlt}>
+                  LEG BYE
+                </button>
+                <button
+                  onClick={() => {
+                    setNameInput(state.bowler.name);
+                    setPendingBowler(true);
+                  }}
+                  className={btnAlt}
+                >
+                  CHANGE BOWLER
+                </button>
+                <button
+                  onClick={() => {
+                    const s = clone(state);
+                    swapStrike(s);
+                    push(s);
+                  }}
+                  className={btnAlt}
+                >
+                  SWAP STRIKE
                 </button>
                 <button
                   onClick={shareLive}
@@ -608,8 +824,9 @@ export function Scoreboard({
                 </button>
               </div>
               <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                Shortcuts: 0–7 runs • W wicket • D wide • N no-ball • U undo.
                 Match auto-saves to scorecards, player &amp; team stats when the
-                2nd innings ends. "Share Live" copies a public live link.
+                2nd innings ends.
               </p>
             </section>
           )}
@@ -631,8 +848,8 @@ export function Scoreboard({
                 >
                   <div>
                     <p className={`font-medium ${i === 0 ? "text-primary" : ""}`}>
-                      {b.name}
-                      {i === 0 && "*"}
+                      {b.name || "—"}
+                      {i === 0 && b.name && "*"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {b.runs} ({b.balls}) • {b.fours}×4 {b.sixes}×6
@@ -669,6 +886,31 @@ export function Scoreboard({
           <section className="overflow-hidden rounded-2xl border border-border bg-card">
             <div className="border-b border-border bg-white/[0.02] px-4 py-2">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Extras
+              </h3>
+            </div>
+            <div className="grid grid-cols-4 divide-x divide-border text-center">
+              {(
+                [
+                  ["WD", state.extras.wd],
+                  ["NB", state.extras.nb],
+                  ["B", state.extras.b],
+                  ["LB", state.extras.lb],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k} className="px-2 py-3">
+                  <p className="font-mono text-lg font-bold">{v}</p>
+                  <p className="text-[10px] uppercase text-muted-foreground">
+                    {k}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="border-b border-border bg-white/[0.02] px-4 py-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Commentary
               </h3>
             </div>
@@ -682,6 +924,121 @@ export function Scoreboard({
         </div>
       </div>
 
+      {/* Extras dialog */}
+      {extraKind && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <h3 className="mb-1 font-heading text-xl font-bold">
+              {extraKind === "wd"
+                ? "Wide"
+                : extraKind === "nb"
+                  ? "No Ball"
+                  : extraKind === "b"
+                    ? "Byes"
+                    : "Leg Byes"}
+            </h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              {extraKind === "wd" || extraKind === "nb"
+                ? "Extra runs taken off this delivery?"
+                : "How many runs were run?"}
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {(extraKind === "b" || extraKind === "lb"
+                ? [1, 2, 3, 4]
+                : [0, 1, 2, 3, 4, 6]
+              ).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => applyExtra(extraKind, n)}
+                  className="rounded-lg bg-secondary py-3 font-heading text-lg font-bold hover:bg-secondary/70"
+                >
+                  {extraKind === "b" || extraKind === "lb" ? n : `+${n}`}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setExtraKind(null)}
+              className="mt-4 w-full rounded-lg border border-border py-2 text-sm text-muted-foreground hover:bg-white/5"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Wicket dialog */}
+      {wicketOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <h3 className="mb-1 font-heading text-xl font-bold">Wicket</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              {state.freeHit
+                ? "Free hit — only a run out is allowed."
+                : "How was the batter dismissed?"}
+            </p>
+            <div className="space-y-3">
+              <select
+                value={wType}
+                onChange={(e) => setWType(e.target.value as WicketType)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+              >
+                {WICKET_TYPES.filter(
+                  (t) => !state.freeHit || t === "Run out" || t === "Retired",
+                ).map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+              {(wType === "Caught" ||
+                wType === "Stumped" ||
+                wType === "Run out") && (
+                <input
+                  value={fielder}
+                  onChange={(e) => setFielder(e.target.value)}
+                  placeholder="Fielder / keeper name (optional)"
+                  list="cm-fielders"
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+                />
+              )}
+              <datalist id="cm-fielders">
+                {bowlingLineup.map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+              {wType === "Run out" && (
+                <select
+                  value={runOutEnd}
+                  onChange={(e) =>
+                    setRunOutEnd(e.target.value as "striker" | "nonStriker")
+                  }
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
+                >
+                  <option value="striker">{striker.name} (striker)</option>
+                  <option value="nonStriker">
+                    {nonStriker.name} (non-striker)
+                  </option>
+                </select>
+              )}
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setWicketOpen(false)}
+                className="flex-1 rounded-lg border border-border py-2.5 text-sm text-muted-foreground hover:bg-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmWicket}
+                className="flex-1 rounded-lg bg-destructive py-2.5 text-sm font-bold text-destructive-foreground hover:opacity-90"
+              >
+                Confirm Wicket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* New batter / bowler modal */}
       {(pendingBatter || pendingBowler) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
@@ -691,9 +1048,26 @@ export function Scoreboard({
             </h3>
             <p className="mb-4 text-sm text-muted-foreground">
               {pendingBatter
-                ? "Enter the incoming batter's name."
-                : "Over complete — who bowls next?"}
+                ? "Pick the incoming batter from the squad or type a name."
+                : "Who bowls next?"}
             </p>
+            {(pendingBatter ? availableBatters : bowlingLineup).length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {(pendingBatter ? availableBatters : bowlingLineup).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setNameInput(n)}
+                    className={`rounded-full border px-3 py-1 text-xs ${
+                      nameInput === n
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            )}
             <input
               autoFocus
               value={nameInput}
@@ -722,27 +1096,40 @@ export function Scoreboard({
             <h3 className="mb-1 font-heading text-xl font-bold">2nd Innings</h3>
             <p className="mb-4 text-sm text-muted-foreground">
               {bowlingFirst} chasing {(firstInnings?.runs ?? state.runs) + 1}.
-              Enter openers &amp; bowler.
+              Choose openers &amp; bowler.
             </p>
             <div className="space-y-3">
               <input
                 value={s2Striker}
                 onChange={(e) => setS2Striker(e.target.value)}
+                list="cm-s2-bat"
                 placeholder="Striker"
                 className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
               <input
                 value={s2NonStriker}
                 onChange={(e) => setS2NonStriker(e.target.value)}
+                list="cm-s2-bat"
                 placeholder="Non-striker"
                 className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
               <input
                 value={s2Bowler}
                 onChange={(e) => setS2Bowler(e.target.value)}
+                list="cm-s2-bowl"
                 placeholder="Opening bowler"
                 className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
+              <datalist id="cm-s2-bat">
+                {lineupOf(bowlingFirst).map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+              <datalist id="cm-s2-bowl">
+                {lineupOf(battingFirst).map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
             </div>
             <button
               onClick={startSecond}
@@ -760,4 +1147,4 @@ export function Scoreboard({
 const btnBase =
   "aspect-square rounded-lg bg-secondary text-xl sm:text-2xl font-heading font-bold transition-transform hover:bg-secondary/70 active:scale-95";
 const btnAlt =
-  "aspect-square rounded-lg bg-secondary text-xs sm:text-base font-medium transition-transform hover:bg-secondary/70 active:scale-95";
+  "aspect-square rounded-lg bg-secondary text-[10px] sm:text-sm font-medium leading-tight transition-transform hover:bg-secondary/70 active:scale-95";
