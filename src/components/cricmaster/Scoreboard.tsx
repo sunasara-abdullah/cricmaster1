@@ -347,10 +347,7 @@ export function Scoreboard({
     if (name) {
       const s = clone(state);
       if (s.bowler.balls > 0) s.bowlerHistory.push({ ...s.bowler });
-      const prev = s.bowlerHistory.find((x) => x.name === name);
-      s.bowler = prev
-        ? { name, balls: 0, runs: 0, wickets: 0 }
-        : { name, balls: 0, runs: 0, wickets: 0 };
+      s.bowler = { name, balls: 0, runs: 0, wickets: 0 };
       push(s);
     }
     setPendingBowler(false);
