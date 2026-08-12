@@ -2,8 +2,6 @@
 
 muje ek mast cricket scoring app banana he jiska naam cricmaster rakhna or jisme totaly serviece provide karni he professional chahiye ekdam
 
-This project was built with [Lovable](https://lovable.dev).
-
 **Live app**: https://cricmaster1.lovable.app
 
 ## Build with Lovable
