@@ -94,7 +94,7 @@ function PlayersPage() {
       <Navbar />
       <main className="mx-auto max-w-7xl px-4 py-8">
         <header className="mb-8">
-          <h1 className="font-heading text-4xl font-bold tracking-tight">
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
             Player <span className="text-primary">Dashboard</span>
           </h1>
           <p className="mt-1 text-muted-foreground">
@@ -145,12 +145,12 @@ function PlayersPage() {
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="flex flex-wrap items-center gap-3 border-b border-border bg-white/[0.02] px-4 py-3">
+              <div className="flex flex-wrap items-center gap-3 border-b border-border bg-white/[0.02] px-3 py-3 sm:px-4">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   All Players
                 </h2>
-                <div className="ml-auto flex flex-wrap items-center gap-2">
-                  <div className="relative">
+                <div className="ml-auto flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                  <div className="relative min-w-0 flex-1 sm:flex-none">
                     <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                     <input
                       value={query}
@@ -160,7 +160,7 @@ function PlayersPage() {
                       }}
                       placeholder="Search player"
                       aria-label="Search players"
-                      className="w-44 rounded-lg border border-border bg-background py-1.5 pl-8 pr-2 text-xs outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-2 text-xs outline-none focus:border-primary sm:w-44"
                     />
                   </div>
                   <select
@@ -190,16 +190,16 @@ function PlayersPage() {
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-sm">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                      <th className="px-4 py-2 font-semibold">Player</th>
-                      <th className="px-3 py-2 text-right font-semibold">M</th>
-                      <th className="px-3 py-2 text-right font-semibold">Runs</th>
-                      <th className="px-3 py-2 text-right font-semibold">Avg</th>
-                      <th className="px-3 py-2 text-right font-semibold">SR</th>
-                      <th className="px-3 py-2 text-right font-semibold">Wkts</th>
-                      <th className="px-3 py-2 text-right font-semibold">Econ</th>
+                      <th className="px-3 py-2 font-semibold sm:px-4">Player</th>
+                      <th className="px-2 py-2 text-right font-semibold sm:px-3">M</th>
+                      <th className="px-2 py-2 text-right font-semibold sm:px-3">Runs</th>
+                      <th className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Avg</th>
+                      <th className="hidden px-3 py-2 text-right font-semibold sm:table-cell">SR</th>
+                      <th className="px-2 py-2 text-right font-semibold sm:px-3">Wkts</th>
+                      <th className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Econ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -214,25 +214,25 @@ function PlayersPage() {
                       const avg = battingAverage(p.batting);
                       return (
                         <tr key={p.name} className="border-b border-border/60 hover:bg-white/[0.02]">
-                          <td className="px-4 py-3 font-medium">
+                          <td className="px-3 py-3 font-medium sm:px-4">
                             <Link
                               to="/players/$name"
                               params={{ name: p.name }}
-                              className="text-primary hover:underline"
+                              className="break-words text-primary hover:underline"
                             >
                               {p.name}
                             </Link>
                           </td>
-                          <td className="px-3 py-3 text-right font-mono text-muted-foreground">{p.matches}</td>
-                          <td className="px-3 py-3 text-right font-mono">{p.batting.runs}</td>
-                          <td className="px-3 py-3 text-right font-mono text-muted-foreground">
+                          <td className="px-2 py-3 text-right font-mono text-muted-foreground sm:px-3">{p.matches}</td>
+                          <td className="px-2 py-3 text-right font-mono sm:px-3">{p.batting.runs}</td>
+                          <td className="hidden px-3 py-3 text-right font-mono text-muted-foreground sm:table-cell">
                             {avg === null ? "—" : avg.toFixed(1)}
                           </td>
-                          <td className="px-3 py-3 text-right font-mono text-muted-foreground">
+                          <td className="hidden px-3 py-3 text-right font-mono text-muted-foreground sm:table-cell">
                             {battingSR(p.batting).toFixed(1)}
                           </td>
-                          <td className="px-3 py-3 text-right font-mono">{p.bowling.wickets}</td>
-                          <td className="px-3 py-3 text-right font-mono text-muted-foreground">
+                          <td className="px-2 py-3 text-right font-mono sm:px-3">{p.bowling.wickets}</td>
+                          <td className="hidden px-3 py-3 text-right font-mono text-muted-foreground sm:table-cell">
                             {p.bowling.balls ? bowlingEcon(p.bowling).toFixed(1) : "—"}
                           </td>
                         </tr>
