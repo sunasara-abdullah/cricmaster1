@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Footer } from "@/components/cricmaster/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { purgeDemoData } from "@/lib/purgeDemo";
 import {
   setSyncUser,
   hydrateFromCloud,
