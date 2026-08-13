@@ -1,3 +1,5 @@
+import { SYNCED_STORES, pushStore } from "./cloudSync";
+
 /**
  * One-time cleanup of the old built-in demo/sample data (fictional IPL-style
  * teams and players) that may still be sitting in a user's localStorage.
@@ -102,4 +104,21 @@ export function purgeDemoData() {
     }
     return out;
   });
+}
+
+/**
+ * Purge demo entries locally and mirror the cleaned stores back to the cloud
+ * so hydration doesn't bring them back.
+ */
+export async function purgeDemoDataEverywhere() {
+  purgeDemoData();
+  for (const key of Object.keys(SYNCED_STORES)) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (raw) await pushStore(key, JSON.parse(raw));
+      window.dispatchEvent(new Event(SYNCED_STORES[key]!));
+    } catch {
+      /* ignore */
+    }
+  }
 }
