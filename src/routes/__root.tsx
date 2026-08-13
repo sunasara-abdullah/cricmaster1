@@ -150,6 +150,13 @@ function RootComponent() {
         keys.forEach((k) => window.localStorage.removeItem(k));
         window.localStorage.setItem(FRESH_FLAG, "1");
       }
+      // Remove any leftover built-in demo/sample entries (real data is kept).
+      const DEMO_FLAG = "cricmaster:demo-purge:v1";
+      if (!window.localStorage.getItem(DEMO_FLAG)) {
+        purgeDemoData();
+        window.localStorage.setItem(DEMO_FLAG, "1");
+        window.dispatchEvent(new Event("cricmaster:stats-updated"));
+      }
     } catch {
       /* ignore */
     }
