@@ -11,6 +11,7 @@ import {
   bestFigures,
 } from "@/lib/playerStats";
 import { LoadMore } from "@/components/cricmaster/LoadMore";
+import { GlobalPlayerSearch } from "@/components/cricmaster/GlobalPlayerSearch";
 
 const PAGE = 25;
 
@@ -101,6 +102,8 @@ function PlayersPage() {
             Lifetime stats across all matches you've scored.
           </p>
         </header>
+
+        <GlobalPlayerSearch />
 
         {!ready ? (
           <div className="grid gap-6 md:grid-cols-2" aria-label="Loading player stats">
