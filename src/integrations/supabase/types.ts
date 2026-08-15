@@ -59,6 +59,45 @@ export type Database = {
         }
         Relationships: []
       }
+      global_players: {
+        Row: {
+          batting: Json
+          bowling: Json
+          created_at: string
+          last_played: string | null
+          matches: number
+          name: string
+          photo: string | null
+          slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          batting?: Json
+          bowling?: Json
+          created_at?: string
+          last_played?: string | null
+          matches?: number
+          name: string
+          photo?: string | null
+          slug: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          batting?: Json
+          bowling?: Json
+          created_at?: string
+          last_played?: string | null
+          matches?: number
+          name?: string
+          photo?: string | null
+          slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       live_matches: {
         Row: {
           created_at: string
