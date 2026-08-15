@@ -1,5 +1,6 @@
 import type { Batter, Bowler } from "./cricket";
 import { queuePush } from "./cloudSync";
+import { publishPlayers } from "./globalPlayers";
 
 const KEY = "cricmaster:playerStats:v1";
 
@@ -70,6 +71,7 @@ const saveStats = (store: StatsStore) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(store));
   queuePush(KEY, store);
+  void publishPlayers(store);
   window.dispatchEvent(new Event("cricmaster:stats-updated"));
 };
 
