@@ -4,6 +4,7 @@ import markUrl from "@/assets/cricmaster-mark.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
+import { AppSidebar } from "@/components/cricmaster/AppSidebar";
 
 const links = [
   { to: "/", label: "Live Scoring" },
@@ -39,6 +40,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-8">
+          <AppSidebar />
           <Link
             to="/"
             className="flex items-center gap-2"
