@@ -65,10 +65,13 @@ export type Database = {
           bowling: Json
           created_at: string
           last_played: string | null
+          leagues: string[]
           matches: number
           name: string
           photo: string | null
+          seasons: string[]
           slug: string
+          teams: string[]
           updated_at: string
           user_id: string
         }
@@ -77,10 +80,13 @@ export type Database = {
           bowling?: Json
           created_at?: string
           last_played?: string | null
+          leagues?: string[]
           matches?: number
           name: string
           photo?: string | null
+          seasons?: string[]
           slug: string
+          teams?: string[]
           updated_at?: string
           user_id: string
         }
@@ -89,10 +95,13 @@ export type Database = {
           bowling?: Json
           created_at?: string
           last_played?: string | null
+          leagues?: string[]
           matches?: number
           name?: string
           photo?: string | null
+          seasons?: string[]
           slug?: string
+          teams?: string[]
           updated_at?: string
           user_id?: string
         }
