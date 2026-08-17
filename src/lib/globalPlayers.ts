@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { BattingStats, BowlingStats, PlayerProfile, StatsStore } from "./playerStats";
+import { loadTeams } from "./teams";
+import { loadLeagues } from "./leagues";
 
 /**
  * Shared player directory.
@@ -19,7 +21,48 @@ export type GlobalPlayer = {
   photo?: string;
   lastPlayed: string;
   scorers: number; // how many different scorers contributed to this record
+  teams: string[];
+  leagues: string[];
+  seasons: string[];
 };
+
+export type GlobalSort =
+  | "runs"
+  | "average"
+  | "wickets"
+  | "bowlingAverage"
+  | "matches";
+
+export type GlobalFilters = {
+  team?: string;
+  league?: string;
+  season?: string;
+  sort?: GlobalSort;
+};
+
+/** Map every local player slug to the teams/leagues/seasons they belong to. */
+function localAffiliations() {
+  const teams = Object.values(loadTeams());
+  const leagues = Object.values(loadLeagues());
+  const map = new Map<string, { teams: Set<string>; leagues: Set<string>; seasons: Set<string> }>();
+  for (const t of teams) {
+    for (const member of t.squad ?? []) {
+      const id = member.trim().toLowerCase();
+      if (!id) continue;
+      const entry =
+        map.get(id) ?? { teams: new Set<string>(), leagues: new Set<string>(), seasons: new Set<string>() };
+      entry.teams.add(t.name);
+      for (const l of leagues) {
+        if (l.teams?.some((x) => x.toLowerCase() === t.name.toLowerCase())) {
+          entry.leagues.add(l.name);
+          if (l.season) entry.seasons.add(l.season);
+        }
+      }
+      map.set(id, entry);
+    }
+  }
+  return map;
+}
 
 const emptyBatting = (): BattingStats => ({
   innings: 0,
@@ -47,6 +90,7 @@ export async function publishPlayers(store: StatsStore): Promise<void> {
     const { data } = await supabase.auth.getSession();
     const userId = data.session?.user.id;
     if (!userId) return;
+    const aff = localAffiliations();
     const rows = Object.entries(store)
       .filter(([, p]) => p && p.name?.trim())
       .map(([slug, p]) => ({
@@ -58,6 +102,9 @@ export async function publishPlayers(store: StatsStore): Promise<void> {
         bowling: (p.bowling ?? emptyBowling()) as never,
         photo: p.photo ?? null,
         last_played: p.lastPlayed || null,
+        teams: [...(aff.get(slug)?.teams ?? [])],
+        leagues: [...(aff.get(slug)?.leagues ?? [])],
+        seasons: [...(aff.get(slug)?.seasons ?? [])],
       }));
     if (rows.length === 0) return;
     await supabase.from("global_players").upsert(rows, { onConflict: "user_id,slug" });
