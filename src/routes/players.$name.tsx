@@ -50,16 +50,26 @@ function ProfilePage() {
   const { name } = Route.useParams();
   const [player, setPlayer] = useState<PlayerProfile | undefined>(undefined);
   const [ready, setReady] = useState(false);
+  const [perfs, setPerfs] = useState<PlayerMatchPerf[]>([]);
+  const [leagueHistory, setLeagueHistory] = useState<LeagueAppearance[]>([]);
 
   useEffect(() => {
     const sync = () => {
       setPlayer(findPlayer(name));
+      const p = playerMatches(name);
+      setPerfs(p);
+      setLeagueHistory(playerLeagueHistory(p));
       setReady(true);
     };
     sync();
     window.addEventListener("cricmaster:stats-updated", sync);
-    return () => window.removeEventListener("cricmaster:stats-updated", sync);
+    window.addEventListener("cricmaster:matches-updated", sync);
+    return () => {
+      window.removeEventListener("cricmaster:stats-updated", sync);
+      window.removeEventListener("cricmaster:matches-updated", sync);
+    };
   }, [name]);
+
 
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
