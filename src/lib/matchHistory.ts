@@ -72,3 +72,38 @@ export const deleteMatch = (id: string) => {
 
 export const listMatches = (): SavedMatch[] =>
   Object.values(loadMatches()).sort((a, b) => b.date.localeCompare(a.date));
+
+/** Patch a saved match in place (used by the lineup editor). */
+export const updateMatch = (
+  id: string,
+  patch: Partial<Omit<SavedMatch, "id">>,
+): SavedMatch | undefined => {
+  const store = loadMatches();
+  const cur = store[id];
+  if (!cur) return undefined;
+  store[id] = { ...cur, ...patch, id };
+  save(store);
+  return store[id];
+};
+
+/**
+ * Rename players inside a saved match's innings cards.
+ * `map` is keyed by the current (exact) player name.
+ */
+export const editMatchLineup = (
+  id: string,
+  map: Record<string, string>,
+): SavedMatch | undefined => {
+  const cur = getMatch(id);
+  if (!cur) return undefined;
+  const fix = (n: string) => (map[n]?.trim() ? map[n].trim() : n);
+  const innings = cur.innings.map((inn) => ({
+    ...inn,
+    batters: inn.batters.map((b) => ({ ...b, name: fix(b.name) })),
+    bowlers: inn.bowlers.map((b) => ({ ...b, name: fix(b.name) })),
+  }));
+  return updateMatch(id, {
+    innings,
+    manOfTheMatch: cur.manOfTheMatch ? fix(cur.manOfTheMatch) : cur.manOfTheMatch,
+  });
+};
