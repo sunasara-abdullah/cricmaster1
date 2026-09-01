@@ -14,6 +14,15 @@ import {
   computeBadges,
   setPlayerPhoto,
 } from "@/lib/playerStats";
+import {
+  bestInnings,
+  bestSpells,
+  playerLeagueHistory,
+  playerMatches,
+  type LeagueAppearance,
+  type PlayerMatchPerf,
+} from "@/lib/playerHistory";
+
 
 export const Route = createFileRoute("/players/$name")({
   head: ({ params }) => ({
