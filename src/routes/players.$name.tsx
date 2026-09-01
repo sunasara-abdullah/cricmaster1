@@ -14,6 +14,15 @@ import {
   computeBadges,
   setPlayerPhoto,
 } from "@/lib/playerStats";
+import {
+  bestInnings,
+  bestSpells,
+  playerLeagueHistory,
+  playerMatches,
+  type LeagueAppearance,
+  type PlayerMatchPerf,
+} from "@/lib/playerHistory";
+
 
 export const Route = createFileRoute("/players/$name")({
   head: ({ params }) => ({
@@ -41,16 +50,26 @@ function ProfilePage() {
   const { name } = Route.useParams();
   const [player, setPlayer] = useState<PlayerProfile | undefined>(undefined);
   const [ready, setReady] = useState(false);
+  const [perfs, setPerfs] = useState<PlayerMatchPerf[]>([]);
+  const [leagueHistory, setLeagueHistory] = useState<LeagueAppearance[]>([]);
 
   useEffect(() => {
     const sync = () => {
       setPlayer(findPlayer(name));
+      const p = playerMatches(name);
+      setPerfs(p);
+      setLeagueHistory(playerLeagueHistory(p));
       setReady(true);
     };
     sync();
     window.addEventListener("cricmaster:stats-updated", sync);
-    return () => window.removeEventListener("cricmaster:stats-updated", sync);
+    window.addEventListener("cricmaster:matches-updated", sync);
+    return () => {
+      window.removeEventListener("cricmaster:stats-updated", sync);
+      window.removeEventListener("cricmaster:matches-updated", sync);
+    };
   }, [name]);
+
 
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -158,6 +177,137 @@ function ProfilePage() {
                 <Stat label="Spells" value={player.bowling.innings} />
               </div>
             </section>
+
+            {perfs.length > 0 && (
+              <>
+                <section className="mt-8">
+                  <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    Best innings
+                  </h2>
+                  <ul className="space-y-2">
+                    {bestInnings(perfs).map((p, i) => (
+                      <li
+                        key={`${p.matchId}-${i}`}
+                        className="rounded-xl border border-border bg-card p-3 text-sm"
+                      >
+                        <Link to="/matches/$id" params={{ id: p.matchId }} className="block">
+                          <span className="font-heading text-lg font-bold">
+                            {p.batting!.runs}
+                            {p.batting!.out ? "" : "*"}
+                          </span>{" "}
+                          <span className="text-muted-foreground">
+                            ({p.batting!.balls}b, {p.batting!.fours}×4, {p.batting!.sixes}×6)
+                          </span>
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            vs {p.opponent} · {new Date(p.date).toLocaleDateString()}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+                {bestSpells(perfs).length > 0 && (
+                  <section className="mt-8">
+                    <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      Best spells
+                    </h2>
+                    <ul className="space-y-2">
+                      {bestSpells(perfs).map((p, i) => (
+                        <li
+                          key={`${p.matchId}-s${i}`}
+                          className="rounded-xl border border-border bg-card p-3 text-sm"
+                        >
+                          <Link to="/matches/$id" params={{ id: p.matchId }} className="block">
+                            <span className="font-heading text-lg font-bold">
+                              {p.bowling!.wickets}/{p.bowling!.runs}
+                            </span>{" "}
+                            <span className="text-muted-foreground">
+                              ({oversText(p.bowling!.balls)} ov)
+                            </span>
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              vs {p.opponent} · {new Date(p.date).toLocaleDateString()}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                <section className="mt-8">
+                  <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    League history
+                  </h2>
+                  {leagueHistory.length === 0 ? (
+                    <p className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+                      No league matches yet. Matches played inside a league will appear here.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {leagueHistory.map((l) => (
+                        <li
+                          key={l.league.id}
+                          className="rounded-xl border border-border bg-card p-3 text-sm"
+                        >
+                          <Link
+                            to="/leagues/$id"
+                            params={{ id: l.league.id }}
+                            className="font-bold hover:text-primary"
+                          >
+                            {l.league.name}
+                          </Link>
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            {l.league.season} · {l.matches} matches · {l.runs} runs ·{" "}
+                            {l.wickets} wkts
+                          </span>
+                          {l.teams.length > 0 && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Teams: {l.teams.join(", ")}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <section className="mt-8">
+                  <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    Match history
+                  </h2>
+                  <ul className="space-y-2">
+                    {perfs.slice(0, 20).map((p, i) => (
+                      <li
+                        key={`${p.matchId}-m${i}`}
+                        className="rounded-xl border border-border bg-card p-3 text-sm"
+                      >
+                        <Link to="/matches/$id" params={{ id: p.matchId }} className="block">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-bold">
+                              {p.team} vs {p.opponent}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(p.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {p.batting
+                              ? `${p.batting.runs}${p.batting.out ? "" : "*"} (${p.batting.balls}b)`
+                              : "—"}
+                            {p.bowling
+                              ? ` · ${p.bowling.wickets}/${p.bowling.runs} (${oversText(p.bowling.balls)})`
+                              : ""}
+                            {p.mom ? " · 🏆 MoM" : ""}
+                          </p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </>
+            )}
+
           </>
         ) : (
           <p className="mt-8 text-muted-foreground">Loading…</p>
