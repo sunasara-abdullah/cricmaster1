@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import {
   type GlobalPlayer,
+  type GlobalSort,
   searchGlobalPlayers,
 } from "@/lib/globalPlayers";
 import {
@@ -14,10 +15,25 @@ import {
   bestFigures,
 } from "@/lib/playerStats";
 
+const SORTS: { value: GlobalSort; label: string }[] = [
+  { value: "runs", label: "Most runs" },
+  { value: "average", label: "Batting average" },
+  { value: "wickets", label: "Most wickets" },
+  { value: "bowlingAverage", label: "Bowling average" },
+  { value: "matches", label: "Most matches" },
+];
+
 export function GlobalPlayerSearch() {
   const { user, loading } = useAuth();
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<GlobalPlayer[]>([]);
+  const [teams, setTeams] = useState<string[]>([]);
+  const [leagues, setLeagues] = useState<string[]>([]);
+  const [seasons, setSeasons] = useState<string[]>([]);
+  const [team, setTeam] = useState("");
+  const [league, setLeague] = useState("");
+  const [season, setSeason] = useState("");
+  const [sort, setSort] = useState<GlobalSort>("runs");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [openSlug, setOpenSlug] = useState<string | null>(null);
@@ -30,10 +46,13 @@ export function GlobalPlayerSearch() {
     let active = true;
     setBusy(true);
     const t = setTimeout(() => {
-      searchGlobalPlayers(query)
+      searchGlobalPlayers(query, { team: team || undefined, league: league || undefined, season: season || undefined, sort })
         .then((r) => {
           if (!active) return;
-          setRows(r);
+          setRows(r.players);
+          setTeams(r.teams);
+          setLeagues(r.leagues);
+          setSeasons(r.seasons);
           setError("");
         })
         .catch(() => active && setError("Search abhi load nahi ho payi. Dobara try karein."))
@@ -43,7 +62,7 @@ export function GlobalPlayerSearch() {
       active = false;
       clearTimeout(t);
     };
-  }, [query, user]);
+  }, [query, user, team, league, season, sort]);
 
   if (loading) return null;
 
@@ -66,6 +85,9 @@ export function GlobalPlayerSearch() {
     );
   }
 
+  const selectCls =
+    "w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs outline-none focus:border-primary sm:w-auto";
+
   return (
     <section className="mb-8 overflow-hidden rounded-2xl border border-border bg-card">
       <div className="flex flex-wrap items-center gap-3 border-b border-border bg-white/[0.02] px-3 py-3 sm:px-4">
@@ -82,6 +104,40 @@ export function GlobalPlayerSearch() {
             className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-2 text-xs outline-none focus:border-primary"
           />
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-b border-border px-3 py-2.5 sm:px-4">
+        <select aria-label="Filter by team" value={team} onChange={(e) => setTeam(e.target.value)} className={selectCls}>
+          <option value="">All teams</option>
+          {teams.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+        <select aria-label="Filter by league" value={league} onChange={(e) => setLeague(e.target.value)} className={selectCls}>
+          <option value="">All leagues</option>
+          {leagues.map((l) => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
+        <select aria-label="Filter by season" value={season} onChange={(e) => setSeason(e.target.value)} className={selectCls}>
+          <option value="">All seasons</option>
+          {seasons.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+        <select aria-label="Sort players" value={sort} onChange={(e) => setSort(e.target.value as GlobalSort)} className={`${selectCls} sm:ml-auto`}>
+          {SORTS.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+        {(team || league || season) && (
+          <button
+            onClick={() => { setTeam(""); setLeague(""); setSeason(""); }}
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-white/[0.04]"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       {error && <p className="px-4 py-4 text-sm text-destructive">{error}</p>}
@@ -127,6 +183,11 @@ export function GlobalPlayerSearch() {
                     <span className="block text-xs text-muted-foreground">
                       {p.matches} matches · {p.batting.runs} runs · {p.bowling.wickets} wkts
                     </span>
+                    {(p.teams.length > 0 || p.leagues.length > 0) && (
+                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground/80">
+                        {[...p.teams, ...p.leagues].join(" · ")}
+                      </span>
+                    )}
                   </span>
                   <ChevronDown
                     className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
@@ -160,6 +221,11 @@ export function GlobalPlayerSearch() {
                         ["Scorers", `${p.scorers}`],
                       ]}
                     />
+                    {p.seasons.length > 0 && (
+                      <p className="text-xs text-muted-foreground sm:col-span-2">
+                        Seasons: {p.seasons.join(", ")}
+                      </p>
+                    )}
                   </div>
                 )}
               </li>
