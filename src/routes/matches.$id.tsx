@@ -1,10 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
-import { getMatch, type InningsCard, type SavedMatch } from "@/lib/matchHistory";
+import {
+  getMatch,
+  editMatchLineup,
+  deleteMatch,
+  type InningsCard,
+  type SavedMatch,
+} from "@/lib/matchHistory";
+import { rebuildStatsFromMatches } from "@/lib/playerStats";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 import { exportMatchPdf } from "@/lib/careerExport";
 import { oversText, strikeRate, economy } from "@/lib/cricket";
 
@@ -52,6 +60,7 @@ export const Route = createFileRoute("/matches/$id")({
 
 function ScorecardPage() {
   const { id } = Route.useParams();
+  const navigate = Route.useNavigate();
   const [match, setMatch] = useState<SavedMatch | undefined>(undefined);
   const [ready, setReady] = useState(false);
 
@@ -122,6 +131,23 @@ function ScorecardPage() {
                   <Download className="size-4" />
                   Download PDF
                 </button>
+                <ConfirmButton
+                  title="Delete this match?"
+                  description={`"${match.teamA} vs ${match.teamB}" ka scorecard permanently delete ho jayega.`}
+                  onConfirm={() => {
+                    try {
+                      deleteMatch(match.id);
+                      rebuildStatsFromMatches();
+                      toast.success("Match deleted");
+                      navigate({ to: "/matches" });
+                    } catch {
+                      toast.error("Match delete nahi ho paya");
+                    }
+                  }}
+                  className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+                >
+                  Delete match
+                </ConfirmButton>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
                 {new Date(match.date).toLocaleString()} · {match.overs} overs ·{" "}
@@ -146,6 +172,11 @@ function ScorecardPage() {
                 </p>
               )}
             </header>
+
+            <LineupEditor
+              match={match}
+              onSaved={(m) => setMatch(m)}
+            />
 
             {match.innings.map((inn, i) => (
               <InningsTable key={i} card={inn} />
@@ -254,6 +285,107 @@ function InningsTable({ card }: { card: InningsCard }) {
             ))}
         </tbody>
       </table>
+    </section>
+  );
+}
+
+
+function LineupEditor({
+  match,
+  onSaved,
+}: {
+  match: SavedMatch;
+  onSaved: (m: SavedMatch) => void;
+}) {
+  const names = Array.from(
+    new Set(
+      match.innings.flatMap((i) => [
+        ...i.batters.map((b) => b.name),
+        ...i.bowlers.map((b) => b.name),
+      ]),
+    ),
+  ).filter((n) => n && n.trim());
+
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  const start = () => {
+    setDraft(Object.fromEntries(names.map((n) => [n, n])));
+    setOpen(true);
+  };
+
+  const save = () => {
+    try {
+      const updated = editMatchLineup(match.id, draft);
+      if (!updated) throw new Error("missing");
+      rebuildStatsFromMatches();
+      onSaved(updated);
+      setOpen(false);
+      toast.success("Lineup updated");
+    } catch {
+      toast.error("Lineup save nahi ho paya");
+    }
+  };
+
+  if (names.length === 0) return null;
+
+  return (
+    <section className="mb-8 rounded-2xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-heading text-lg font-bold">Lineup</h2>
+        {!open ? (
+          <button
+            type="button"
+            onClick={start}
+            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+          >
+            <Pencil className="size-3.5" /> Edit lineup
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={save}
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover"
+            >
+              Save lineup
+            </button>
+          </div>
+        )}
+      </div>
+
+      {open ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {names.map((n) => (
+            <label key={n} className="block">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                {n}
+              </span>
+              <input
+                value={draft[n] ?? n}
+                onChange={(e) => setDraft((d) => ({ ...d, [n]: e.target.value }))}
+                aria-label={`Edit name for ${n}`}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+            </label>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+          {names.map((n) => (
+            <span key={n} className="rounded-full bg-secondary px-2.5 py-1">
+              {n}
+            </span>
+          ))}
+        </p>
+      )}
     </section>
   );
 }
