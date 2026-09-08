@@ -1,6 +1,7 @@
 import type { Batter, Bowler } from "./cricket";
 import { queuePush } from "./cloudSync";
 import { publishPlayers } from "./globalPlayers";
+import { listMatches } from "./matchHistory";
 
 const KEY = "cricmaster:playerStats:v1";
 
@@ -192,3 +193,66 @@ export const computeBadges = (p: PlayerProfile): Badge[] => {
 
 // re-export to satisfy unused import guard awareness
 void slugName;
+
+/**
+ * Recompute the whole lifetime stats store from saved match scorecards.
+ * Fixes drift caused by edited/deleted matches or double-counted saves.
+ * Player photos are preserved.
+ */
+export const rebuildStatsFromMatches = (): { players: number; matches: number } => {
+  const photos: Record<string, string> = {};
+  const prev = loadStats();
+  for (const [id, p] of Object.entries(prev)) if (p.photo) photos[id] = p.photo;
+
+  const store: StatsStore = {};
+  const matches = listMatches()
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  for (const m of matches) {
+    const seen = new Set<string>();
+    for (const inn of m.innings) {
+      for (const b of inn.batters) {
+        if (!b.name?.trim()) continue;
+        if (b.balls === 0 && b.runs === 0 && !b.out) continue;
+        const p = ensure(store, b.name);
+        p.batting.innings += 1;
+        if (!b.out) p.batting.notOuts += 1;
+        p.batting.runs += b.runs;
+        p.batting.balls += b.balls;
+        p.batting.fours += b.fours;
+        p.batting.sixes += b.sixes;
+        p.batting.highest = Math.max(p.batting.highest, b.runs);
+        if (b.runs >= 100) p.batting.hundreds += 1;
+        else if (b.runs >= 50) p.batting.fifties += 1;
+        p.lastPlayed = m.date;
+        seen.add(slug(b.name));
+      }
+      for (const bw of inn.bowlers) {
+        if (!bw.name?.trim() || bw.balls === 0) continue;
+        const p = ensure(store, bw.name);
+        p.bowling.innings += 1;
+        p.bowling.balls += bw.balls;
+        p.bowling.runs += bw.runs;
+        p.bowling.wickets += bw.wickets;
+        const best = p.bowling.best;
+        if (
+          bw.wickets > best.wickets ||
+          (bw.wickets === best.wickets && bw.runs < best.runs)
+        ) {
+          p.bowling.best = { wickets: bw.wickets, runs: bw.runs };
+        }
+        p.lastPlayed = m.date;
+        seen.add(slug(bw.name));
+      }
+    }
+    for (const id of seen) store[id].matches += 1;
+  }
+
+  for (const [id, photo] of Object.entries(photos)) {
+    if (store[id]) store[id].photo = photo;
+  }
+
+  saveStats(store);
+  return { players: Object.keys(store).length, matches: matches.length };
+};
