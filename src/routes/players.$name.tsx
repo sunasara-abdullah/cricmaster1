@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { oversText } from "@/lib/cricket";
@@ -13,6 +14,7 @@ import {
   bestFigures,
   computeBadges,
   setPlayerPhoto,
+  rebuildStatsFromMatches,
 } from "@/lib/playerStats";
 import {
   bestInnings,
