@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { oversText } from "@/lib/cricket";
@@ -13,6 +14,7 @@ import {
   bestFigures,
   computeBadges,
   setPlayerPhoto,
+  rebuildStatsFromMatches,
 } from "@/lib/playerStats";
 import {
   bestInnings,
@@ -112,12 +114,31 @@ function ProfilePage() {
               <div>
                 <h1 className="font-heading text-3xl font-bold tracking-tight">{player.name}</h1>
                 <p className="text-sm text-muted-foreground">{player.matches} matches played</p>
-                <label className="mt-1 inline-block cursor-pointer text-xs text-primary hover:underline">
-                  Upload photo
-                  <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
-                </label>
+                <div className="mt-1 flex flex-wrap items-center gap-3">
+                  <label className="inline-block cursor-pointer text-xs text-primary hover:underline">
+                    Upload photo
+                    <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        const r = rebuildStatsFromMatches();
+                        toast.success(
+                          `Stats recalculated from ${r.matches} saved matches`,
+                        );
+                      } catch {
+                        toast.error("Stats fix nahi ho paye, dobara try karein");
+                      }
+                    }}
+                    className="text-xs font-semibold text-muted-foreground hover:text-primary"
+                  >
+                    Fix / recalculate stats
+                  </button>
+                </div>
               </div>
             </header>
+
 
             {computeBadges(player).length > 0 && (
               <section className="mb-6 flex flex-wrap gap-2">
