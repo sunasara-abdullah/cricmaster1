@@ -100,14 +100,14 @@ const TeamsNameRoute = TeamsNameRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayersNameRoute = PlayersNameRouteImport.update({
-  id: '/players/$name',
-  path: '/players/$name',
-  getParentRoute: () => rootRouteImport,
+  id: '/$name',
+  path: '/$name',
+  getParentRoute: () => PlayersRoute,
 } as any)
 const MatchesIdRoute = MatchesIdRouteImport.update({
-  id: '/matches/$id',
-  path: '/matches/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => MatchesRoute,
 } as any)
 const LiveIdRoute = LiveIdRouteImport.update({
   id: '/live/$id',
@@ -115,9 +115,9 @@ const LiveIdRoute = LiveIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaguesIdRoute = LeaguesIdRouteImport.update({
-  id: '/leagues/$id',
-  path: '/leagues/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => LeaguesRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -272,10 +272,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
-  LeaguesIdRoute: typeof LeaguesIdRoute
   LiveIdRoute: typeof LiveIdRoute
-  MatchesIdRoute: typeof MatchesIdRoute
-  PlayersNameRoute: typeof PlayersNameRoute
   TeamsNameRoute: typeof TeamsNameRoute
   LeaguesIndexRoute: typeof LeaguesIndexRoute
   MatchesIndexRoute: typeof MatchesIndexRoute
@@ -385,17 +382,17 @@ declare module '@tanstack/react-router' {
     }
     '/players/$name': {
       id: '/players/$name'
-      path: '/players/$name'
+      path: '/$name'
       fullPath: '/players/$name'
       preLoaderRoute: typeof PlayersNameRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof PlayersRoute
     }
     '/matches/$id': {
       id: '/matches/$id'
-      path: '/matches/$id'
+      path: '/$id'
       fullPath: '/matches/$id'
       preLoaderRoute: typeof MatchesIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MatchesRoute
     }
     '/live/$id': {
       id: '/live/$id'
@@ -406,10 +403,10 @@ declare module '@tanstack/react-router' {
     }
     '/leagues/$id': {
       id: '/leagues/$id'
-      path: '/leagues/$id'
+      path: '/$id'
       fullPath: '/leagues/$id'
       preLoaderRoute: typeof LeaguesIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof LeaguesRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -451,10 +448,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
-  LeaguesIdRoute: LeaguesIdRoute,
   LiveIdRoute: LiveIdRoute,
-  MatchesIdRoute: MatchesIdRoute,
-  PlayersNameRoute: PlayersNameRoute,
   TeamsNameRoute: TeamsNameRoute,
   LeaguesIndexRoute: LeaguesIndexRoute,
   MatchesIndexRoute: MatchesIndexRoute,

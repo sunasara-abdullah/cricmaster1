@@ -15,7 +15,7 @@ import { LoadMore } from "@/components/cricmaster/LoadMore";
 
 const PAGE = 12;
 
-export const Route = createFileRoute("/teams")({
+export const Route = createFileRoute("/teams/")({
   head: () => ({
     meta: [
       { title: "Teams & Squads — CricMaster" },
