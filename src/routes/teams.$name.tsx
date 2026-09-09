@@ -4,7 +4,7 @@ import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
 import { type Team, getTeam, upsertTeam, teamRecord } from "@/lib/teams";
 import { listMatches, type SavedMatch } from "@/lib/matchHistory";
-import { TeamLogo } from "./teams";
+import { TeamLogo } from "./teams.index";
 
 export const Route = createFileRoute("/teams/$name")({
   head: ({ params }) => ({

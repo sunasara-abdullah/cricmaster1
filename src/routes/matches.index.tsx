@@ -10,7 +10,7 @@ import { LoadMore } from "@/components/cricmaster/LoadMore";
 
 const PAGE = 10;
 
-export const Route = createFileRoute("/matches")({
+export const Route = createFileRoute("/matches/")({
   head: () => ({
     meta: [
       { title: "Match History & Scorecards — CricMaster" },

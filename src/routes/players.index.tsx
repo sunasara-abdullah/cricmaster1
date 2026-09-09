@@ -15,7 +15,7 @@ import { GlobalPlayerSearch } from "@/components/cricmaster/GlobalPlayerSearch";
 
 const PAGE = 25;
 
-export const Route = createFileRoute("/players")({
+export const Route = createFileRoute("/players/")({
   head: () => ({
     meta: [
       { title: "Player Stats Dashboard — CricMaster" },

@@ -10,7 +10,7 @@ import {
 } from "@/lib/leagues";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 
-export const Route = createFileRoute("/leagues")({
+export const Route = createFileRoute("/leagues/")({
   head: () => ({
     meta: [
       { title: "Leagues & Competitions — CricMaster" },
