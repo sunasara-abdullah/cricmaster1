@@ -135,9 +135,113 @@ function ProfilePage() {
                   >
                     Fix / recalculate stats
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing((v) => !v)}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    {editing ? "Cancel edit" : "Edit details"}
+                  </button>
                 </div>
               </div>
             </header>
+
+            {editing && (
+              <section className="mb-8 rounded-2xl border border-border bg-card p-4">
+                <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Edit player details
+                </h2>
+
+                <label className="block text-xs font-semibold text-muted-foreground">
+                  Player name
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                    placeholder="Player name"
+                  />
+                </label>
+
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-2 text-xs font-semibold text-muted-foreground">Teams</p>
+                    {allTeams.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Koi team nahi hai — pehle Teams page par team banayein.
+                      </p>
+                    ) : (
+                      <div className="max-h-40 space-y-1 overflow-y-auto">
+                        {allTeams.map((t) => (
+                          <label key={t} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={editTeams.includes(t)}
+                              onChange={(e) =>
+                                setEditTeams((prev) =>
+                                  e.target.checked
+                                    ? [...prev, t]
+                                    : prev.filter((x) => x !== t),
+                                )
+                              }
+                            />
+                            {t}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-semibold text-muted-foreground">Leagues</p>
+                    {allLeagues.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Koi league nahi hai — pehle Leagues page par league banayein.
+                      </p>
+                    ) : (
+                      <div className="max-h-40 space-y-1 overflow-y-auto">
+                        {allLeagues.map((l) => (
+                          <label key={l} className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={editLeagues.includes(l)}
+                              onChange={(e) =>
+                                setEditLeagues((prev) =>
+                                  e.target.checked
+                                    ? [...prev, l]
+                                    : prev.filter((x) => x !== l),
+                                )
+                              }
+                            />
+                            {l}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={saveEdits}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+                  >
+                    Save changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Naam badalne par saved matches, team squads aur directory sab update ho jate hain.
+                </p>
+              </section>
+            )}
+
 
 
             {computeBadges(player).length > 0 && (

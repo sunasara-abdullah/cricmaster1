@@ -102,9 +102,16 @@ export async function publishPlayers(store: StatsStore): Promise<void> {
         bowling: (p.bowling ?? emptyBowling()) as never,
         photo: p.photo ?? null,
         last_played: p.lastPlayed || null,
-        teams: [...(aff.get(slug)?.teams ?? [])],
-        leagues: [...(aff.get(slug)?.leagues ?? [])],
-        seasons: [...(aff.get(slug)?.seasons ?? [])],
+        teams: [...new Set([...(aff.get(slug)?.teams ?? []), ...(p.teams ?? [])])],
+        leagues: [
+          ...new Set([...(aff.get(slug)?.leagues ?? []), ...(p.leagues ?? [])]),
+        ],
+        seasons: [
+          ...new Set([
+            ...(aff.get(slug)?.seasons ?? []),
+            ...seasonsForLeagues(p.leagues ?? []),
+          ]),
+        ],
       }));
     if (rows.length === 0) return;
     await supabase.from("global_players").upsert(rows, { onConflict: "user_id,slug" });
@@ -257,3 +264,23 @@ const battingAvg = (b: BattingStats) => {
   const outs = b.innings - b.notOuts;
   return outs <= 0 ? null : b.runs / outs;
 };
+/** Season names for the given league names (from the local league store). */
+function seasonsForLeagues(leagueNames: string[]): string[] {
+  if (leagueNames.length === 0) return [];
+  const wanted = new Set(leagueNames.map((n) => n.trim().toLowerCase()));
+  return Object.values(loadLeagues())
+    .filter((l) => wanted.has(l.name.trim().toLowerCase()) && l.season)
+    .map((l) => l.season);
+}
+
+/** Remove a stale record (e.g. after renaming a player) from the directory. */
+export async function deleteGlobalPlayer(slug: string): Promise<void> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user.id;
+    if (!userId) return;
+    await supabase.from("global_players").delete().eq("user_id", userId).eq("slug", slug);
+  } catch {
+    /* offline — nothing to do */
+  }
+}

@@ -1,7 +1,8 @@
 import type { Batter, Bowler } from "./cricket";
 import { queuePush } from "./cloudSync";
-import { publishPlayers } from "./globalPlayers";
-import { listMatches } from "./matchHistory";
+import { publishPlayers, deleteGlobalPlayer } from "./globalPlayers";
+import { listMatches, updateMatch } from "./matchHistory";
+import { listTeams, upsertTeam } from "./teams";
 
 const KEY = "cricmaster:playerStats:v1";
 
@@ -32,6 +33,10 @@ export type PlayerProfile = {
   bowling: BowlingStats;
   lastPlayed: string;
   photo?: string; // data URL or remote URL
+  /** manually assigned team names (in addition to squad membership) */
+  teams?: string[];
+  /** manually assigned league names */
+  leagues?: string[];
 };
 
 export type StatsStore = Record<string, PlayerProfile>;
@@ -201,8 +206,13 @@ void slugName;
  */
 export const rebuildStatsFromMatches = (): { players: number; matches: number } => {
   const photos: Record<string, string> = {};
+  const meta: Record<string, { teams?: string[]; leagues?: string[] }> = {};
   const prev = loadStats();
-  for (const [id, p] of Object.entries(prev)) if (p.photo) photos[id] = p.photo;
+  for (const [id, p] of Object.entries(prev)) {
+    if (p.photo) photos[id] = p.photo;
+    if (p.teams?.length || p.leagues?.length)
+      meta[id] = { teams: p.teams, leagues: p.leagues };
+  }
 
   const store: StatsStore = {};
   const matches = listMatches()
@@ -252,7 +262,104 @@ export const rebuildStatsFromMatches = (): { players: number; matches: number } 
   for (const [id, photo] of Object.entries(photos)) {
     if (store[id]) store[id].photo = photo;
   }
+  for (const [id, m] of Object.entries(meta)) {
+    if (!store[id]) continue;
+    if (m.teams?.length) store[id].teams = m.teams;
+    if (m.leagues?.length) store[id].leagues = m.leagues;
+  }
 
   saveStats(store);
   return { players: Object.keys(store).length, matches: matches.length };
+};
+
+/**
+ * Rename a player everywhere: saved match scorecards, team squads,
+ * man-of-the-match records and the lifetime stats store. The old entry in
+ * the shared directory is removed so search shows a single, correct record.
+ */
+export const renamePlayer = (oldName: string, newName: string) => {
+  const next = newName.trim();
+  if (!next) throw new Error("Name required");
+  const from = slug(oldName);
+  const to = slug(next);
+  if (!from) throw new Error("Invalid player");
+
+  // 1. saved matches
+  for (const m of listMatches()) {
+    let changed = false;
+    const innings = m.innings.map((inn) => ({
+      ...inn,
+      batters: inn.batters.map((b) => {
+        if (slug(b.name ?? "") !== from) return b;
+        changed = true;
+        return { ...b, name: next };
+      }),
+      bowlers: inn.bowlers.map((b) => {
+        if (slug(b.name ?? "") !== from) return b;
+        changed = true;
+        return { ...b, name: next };
+      }),
+    }));
+    const momChanged = !!m.manOfTheMatch && slug(m.manOfTheMatch) === from;
+    if (changed || momChanged) {
+      updateMatch(m.id, {
+        innings,
+        ...(momChanged ? { manOfTheMatch: next } : {}),
+      });
+    }
+  }
+
+  // 2. team squads
+  for (const t of listTeams()) {
+    const squad = t.squad ?? [];
+    if (!squad.some((s) => slug(s) === from)) continue;
+    const nextSquad = squad.map((s) => (slug(s) === from ? next : s));
+    upsertTeam({ ...t, squad: [...new Set(nextSquad)] });
+  }
+
+  // 3. lifetime stats store
+  const store = loadStats();
+  const prev = store[from];
+  if (prev) {
+    delete store[from];
+    const merged = store[to];
+    store[to] = merged
+      ? { ...merged, name: next, photo: merged.photo ?? prev.photo }
+      : { ...prev, name: next };
+    saveStats(store);
+  }
+
+  if (from !== to) void deleteGlobalPlayer(from);
+  return next;
+};
+
+/**
+ * Set the teams and leagues a player belongs to. Team squads are kept in
+ * sync so the team pages and the shared directory filters agree.
+ */
+export const setPlayerAffiliations = (
+  name: string,
+  teams: string[],
+  leagues: string[],
+) => {
+  const id = slug(name);
+  const cleanTeams = [...new Set(teams.map((t) => t.trim()).filter(Boolean))];
+  const cleanLeagues = [...new Set(leagues.map((l) => l.trim()).filter(Boolean))];
+
+  for (const t of listTeams()) {
+    const squad = t.squad ?? [];
+    const inSquad = squad.some((s) => slug(s) === id);
+    const shouldBe = cleanTeams.some((x) => slug(x) === slug(t.name));
+    if (inSquad === shouldBe) continue;
+    const nextSquad = shouldBe
+      ? [...squad, name.trim()]
+      : squad.filter((s) => slug(s) !== id);
+    upsertTeam({ ...t, squad: nextSquad });
+  }
+
+  const store = loadStats();
+  const p = ensure(store, name);
+  p.teams = cleanTeams;
+  p.leagues = cleanLeagues;
+  saveStats(store);
 };
