@@ -49,41 +49,44 @@ async function pushLiveToCloud(id: string, snap: LiveSnapshot) {
   }
 }
 
-/** One-shot fetch of the cloud snapshot for a live match. */
+/** One-shot fetch of the cloud snapshot for a live match (public, id-only). */
 export async function fetchLive(id: string): Promise<LiveSnapshot | undefined> {
   try {
-    const { data, error } = await supabase
-      .from("live_matches")
-      .select("snapshot")
-      .eq("id", id)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("get_live_match", { _id: id });
     if (error || !data) return undefined;
-    return data.snapshot as unknown as LiveSnapshot;
+    return data as unknown as LiveSnapshot;
   } catch {
     return undefined;
   }
 }
 
-/** Subscribe to realtime updates for a specific live match id. */
+/**
+ * Follow a live match. Anyone with the link can watch: we poll the public
+ * snapshot function every few seconds and push changes to the caller.
+ */
 export function subscribeLive(
   id: string,
   onSnap: (snap: LiveSnapshot) => void,
 ) {
-  const channel = supabase
-    .channel(`live-match-${id}`)
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "live_matches", filter: `id=eq.${id}` },
-      (payload) => {
-        const row = (payload.new ?? payload.old) as { snapshot?: LiveSnapshot } | null;
-        if (row?.snapshot) onSnap(row.snapshot);
-      },
-    )
-    .subscribe();
+  let stopped = false;
+  let last = "";
+  const tick = async () => {
+    const snap = await fetchLive(id);
+    if (stopped || !snap) return;
+    const sig = JSON.stringify(snap);
+    if (sig !== last) {
+      last = sig;
+      onSnap(snap);
+    }
+  };
+  const timer = setInterval(() => void tick(), 4000);
+  void tick();
   return () => {
-    void supabase.removeChannel(channel);
+    stopped = true;
+    clearInterval(timer);
   };
 }
+
 
 export const readLive = (id: string): LiveSnapshot | undefined => {
   if (typeof window === "undefined") return undefined;
