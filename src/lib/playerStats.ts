@@ -261,6 +261,11 @@ export const rebuildStatsFromMatches = (): { players: number; matches: number } 
   for (const [id, photo] of Object.entries(photos)) {
     if (store[id]) store[id].photo = photo;
   }
+  for (const [id, m] of Object.entries(meta)) {
+    if (!store[id]) continue;
+    if (m.teams?.length) store[id].teams = m.teams;
+    if (m.leagues?.length) store[id].leagues = m.leagues;
+  }
 
   saveStats(store);
   return { players: Object.keys(store).length, matches: matches.length };
