@@ -102,9 +102,16 @@ export async function publishPlayers(store: StatsStore): Promise<void> {
         bowling: (p.bowling ?? emptyBowling()) as never,
         photo: p.photo ?? null,
         last_played: p.lastPlayed || null,
-        teams: [...(aff.get(slug)?.teams ?? [])],
-        leagues: [...(aff.get(slug)?.leagues ?? [])],
-        seasons: [...(aff.get(slug)?.seasons ?? [])],
+        teams: [...new Set([...(aff.get(slug)?.teams ?? []), ...(p.teams ?? [])])],
+        leagues: [
+          ...new Set([...(aff.get(slug)?.leagues ?? []), ...(p.leagues ?? [])]),
+        ],
+        seasons: [
+          ...new Set([
+            ...(aff.get(slug)?.seasons ?? []),
+            ...seasonsForLeagues(p.leagues ?? []),
+          ]),
+        ],
       }));
     if (rows.length === 0) return;
     await supabase.from("global_players").upsert(rows, { onConflict: "user_id,slug" });
