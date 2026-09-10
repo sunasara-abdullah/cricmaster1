@@ -58,9 +58,10 @@ function LivePage() {
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
             <p className="text-lg font-medium">No live match here</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              This live link is only available on the device that is scoring the
-              match (it streams locally). Ask the scorer to keep their tab open.
+              This match hasn't started streaming yet, or it has finished. Ask
+              the scorer to keep scoring — the link updates automatically.
             </p>
+
             <Link to="/" className="mt-4 inline-block text-primary">
               Start your own match
             </Link>
