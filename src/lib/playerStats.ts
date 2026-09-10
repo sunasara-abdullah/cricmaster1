@@ -205,8 +205,13 @@ void slugName;
  */
 export const rebuildStatsFromMatches = (): { players: number; matches: number } => {
   const photos: Record<string, string> = {};
+  const meta: Record<string, { teams?: string[]; leagues?: string[] }> = {};
   const prev = loadStats();
-  for (const [id, p] of Object.entries(prev)) if (p.photo) photos[id] = p.photo;
+  for (const [id, p] of Object.entries(prev)) {
+    if (p.photo) photos[id] = p.photo;
+    if (p.teams?.length || p.leagues?.length)
+      meta[id] = { teams: p.teams, leagues: p.leagues };
+  }
 
   const store: StatsStore = {};
   const matches = listMatches()
