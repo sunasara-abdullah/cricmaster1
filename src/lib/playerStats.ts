@@ -32,6 +32,10 @@ export type PlayerProfile = {
   bowling: BowlingStats;
   lastPlayed: string;
   photo?: string; // data URL or remote URL
+  /** manually assigned team names (in addition to squad membership) */
+  teams?: string[];
+  /** manually assigned league names */
+  leagues?: string[];
 };
 
 export type StatsStore = Record<string, PlayerProfile>;
