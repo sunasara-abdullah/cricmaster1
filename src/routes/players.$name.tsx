@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 import { oversText } from "@/lib/cricket";
 import {
   type PlayerProfile,
@@ -15,7 +16,11 @@ import {
   computeBadges,
   setPlayerPhoto,
   rebuildStatsFromMatches,
+  renamePlayer,
+  setPlayerAffiliations,
 } from "@/lib/playerStats";
+import { listTeams } from "@/lib/teams";
+import { loadLeagues } from "@/lib/leagues";
 import {
   bestInnings,
   bestSpells,
@@ -34,6 +39,11 @@ export const Route = createFileRoute("/players/$name")({
         name: "description",
         content: `Career batting and bowling stats for ${params.name} on CricMaster.`,
       },
+      { property: "og:title", content: `${params.name} — Player Profile | CricMaster` },
+      {
+        property: "og:description",
+        content: `Career batting and bowling stats for ${params.name} on CricMaster.`,
+      },
     ],
   }),
   component: ProfilePage,
@@ -50,10 +60,17 @@ function fileToDataUrl(file: File): Promise<string> {
 
 function ProfilePage() {
   const { name } = Route.useParams();
+  const navigate = Route.useNavigate();
   const [player, setPlayer] = useState<PlayerProfile | undefined>(undefined);
   const [ready, setReady] = useState(false);
   const [perfs, setPerfs] = useState<PlayerMatchPerf[]>([]);
   const [leagueHistory, setLeagueHistory] = useState<LeagueAppearance[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editTeams, setEditTeams] = useState<string[]>([]);
+  const [editLeagues, setEditLeagues] = useState<string[]>([]);
+  const [allTeams, setAllTeams] = useState<string[]>([]);
+  const [allLeagues, setAllLeagues] = useState<string[]>([]);
 
   useEffect(() => {
     const sync = () => {
@@ -71,6 +88,41 @@ function ProfilePage() {
       window.removeEventListener("cricmaster:matches-updated", sync);
     };
   }, [name]);
+
+  const beginEditing = () => {
+    if (!player) return;
+    setEditName(player.name);
+    setEditTeams(player.teams ?? []);
+    setEditLeagues(player.leagues ?? []);
+    setAllTeams(listTeams().map((team) => team.name));
+    setAllLeagues(
+      Object.values(loadLeagues())
+        .map((league) => league.name)
+        .sort((a, b) => a.localeCompare(b)),
+    );
+    setEditing(true);
+  };
+
+  const saveEdits = () => {
+    if (!player) return;
+    const nextName = editName.trim();
+    if (!nextName) {
+      toast.error("Player name zaroori hai");
+      return;
+    }
+
+    try {
+      const savedName = renamePlayer(player.name, nextName);
+      setPlayerAffiliations(savedName, editTeams, editLeagues);
+      setEditing(false);
+      toast.success("Player details update ho gaye");
+      if (savedName.toLowerCase() !== name.toLowerCase()) {
+        void navigate({ to: "/players/$name", params: { name: savedName }, replace: true });
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Player update nahi ho paya");
+    }
+  };
 
 
   const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,7 +171,7 @@ function ProfilePage() {
                     Upload photo
                     <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
                   </label>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       try {
@@ -131,17 +183,21 @@ function ProfilePage() {
                         toast.error("Stats fix nahi ho paye, dobara try karein");
                       }
                     }}
-                    className="text-xs font-semibold text-muted-foreground hover:text-primary"
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs text-muted-foreground hover:text-primary"
                   >
                     Fix / recalculate stats
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
-                    onClick={() => setEditing((v) => !v)}
-                    className="text-xs font-semibold text-primary hover:underline"
+                    onClick={() => (editing ? setEditing(false) : beginEditing())}
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
                   >
                     {editing ? "Cancel edit" : "Edit details"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </header>
@@ -221,20 +277,19 @@ function ProfilePage() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={saveEdits}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
                   >
                     Save changes
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => setEditing(false)}
-                    className="rounded-lg border border-border px-4 py-2 text-sm font-semibold"
+                    variant="outline"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Naam badalne par saved matches, team squads aur directory sab update ho jate hain.
