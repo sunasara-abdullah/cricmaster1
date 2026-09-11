@@ -324,7 +324,13 @@ export const renamePlayer = (oldName: string, newName: string) => {
     delete store[from];
     const merged = store[to];
     store[to] = merged
-      ? { ...merged, name: next, photo: merged.photo ?? prev.photo }
+      ? {
+          ...merged,
+          name: next,
+          photo: merged.photo ?? prev.photo,
+          teams: [...new Set([...(merged.teams ?? []), ...(prev.teams ?? [])])],
+          leagues: [...new Set([...(merged.leagues ?? []), ...(prev.leagues ?? [])])],
+        }
       : { ...prev, name: next };
     saveStats(store);
   }

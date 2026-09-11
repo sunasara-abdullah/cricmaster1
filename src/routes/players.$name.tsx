@@ -44,6 +44,8 @@ export const Route = createFileRoute("/players/$name")({
         property: "og:description",
         content: `Career batting and bowling stats for ${params.name} on CricMaster.`,
       },
+      { property: "og:type", content: "profile" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ProfilePage,
