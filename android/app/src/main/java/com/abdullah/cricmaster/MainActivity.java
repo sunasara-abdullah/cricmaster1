@@ -1,5 +1,4 @@
 package com.abdullah.cricmaster;
-
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,6 +14,8 @@ public class MainActivity extends BridgeActivity {
         ImageView splash = new ImageView(this);
         splash.setImageResource(com.abdullah.cricmaster.R.drawable.splash);
         splash.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        splash.setScaleX(1.5f);
+        splash.setScaleY(1.5f);
         splash.setBackgroundColor(android.graphics.Color.rgb(7, 17, 31));
 
         addContentView(
@@ -25,14 +26,23 @@ public class MainActivity extends BridgeActivity {
                 )
         );
 
-        splash.postDelayed(() -> {
-            splash.animate()
-                    .alpha(0f)
-                    .setDuration(300)
-                    .withEndAction(() -> {
-                        ((android.view.ViewGroup) splash.getParent()).removeView(splash);
-                    })
-                    .start();
+        splash.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                splash.animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                android.view.ViewParent parent = splash.getParent();
+                                if (parent instanceof android.view.ViewGroup) {
+                                    ((android.view.ViewGroup) parent).removeView(splash);
+                                }
+                            }
+                        })
+                        .start();
+            }
         }, 2000);
     }
 }
