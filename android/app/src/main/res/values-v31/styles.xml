@@ -3,7 +3,7 @@
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#07111F</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/cricmaster_splash</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/transparent_splash</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 
