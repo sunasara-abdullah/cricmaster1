@@ -1,6 +1,10 @@
 package com.abdullah.cricmaster;
+
 import android.os.Bundle;
-import android.view.View;
+import android.os.Handler;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.getcapacitor.BridgeActivity;
@@ -11,38 +15,40 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        FrameLayout overlay = new FrameLayout(this);
+        overlay.setBackgroundColor(android.graphics.Color.rgb(7, 17, 31));
+
         ImageView splash = new ImageView(this);
-        splash.setImageResource(com.abdullah.cricmaster.R.drawable.splash);
+        splash.setImageResource(R.drawable.splash);
         splash.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        splash.setScaleX(1.5f);
-        splash.setScaleY(1.5f);
-        splash.setBackgroundColor(android.graphics.Color.rgb(7, 17, 31));
+
+        FrameLayout.LayoutParams imageParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        imageParams.gravity = Gravity.CENTER;
+
+        overlay.addView(splash, imageParams);
 
         addContentView(
-                splash,
-                new android.view.ViewGroup.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                overlay,
+                new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
                 )
         );
 
-        splash.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                splash.animate()
-                        .alpha(0f)
-                        .setDuration(300)
-                        .withEndAction(new Runnable() {
-                            @Override
-                            public void run() {
-                                android.view.ViewParent parent = splash.getParent();
-                                if (parent instanceof android.view.ViewGroup) {
-                                    ((android.view.ViewGroup) parent).removeView(splash);
-                                }
-                            }
-                        })
-                        .start();
-            }
-        }, 2000);
+        new Handler().postDelayed(() -> {
+            overlay.animate()
+                    .alpha(0f)
+                    .setDuration(500)
+                    .withEndAction(() -> {
+                        ViewGroup parent = (ViewGroup) overlay.getParent();
+                        if (parent != null) {
+                            parent.removeView(overlay);
+                        }
+                    })
+                    .start();
+        }, 2500);
     }
 }
