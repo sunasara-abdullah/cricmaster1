@@ -116,15 +116,16 @@ function AuthPage() {
 
   const google = async () => {
     setError("");
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    // Supabase native OAuth works on any domain (Lovable, custom domain, or
+    // self-hosted server) — the Lovable broker only allows Lovable domains.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
-    if (result.error) {
+    if (error) {
       setError("Google sign-in fail hua. Dobara try karein.");
-      return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/career" });
+    // Browser redirects to Google; session is picked up on return.
   };
 
   return (
