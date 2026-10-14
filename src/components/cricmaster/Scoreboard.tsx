@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   type Batter,
@@ -16,11 +16,12 @@ import { recordLeagueResult } from "@/lib/leagues";
 import { publishLive } from "@/lib/liveShare";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 
 type Extras = { wd: number; nb: number; b: number; lb: number };
 type OverSummary = { n: number; runs: number; wickets: number; balls: string[] };
 
-type State = {
+export type ScoreState = {
   runs: number;
   wickets: number;
   legalBalls: number;
@@ -39,6 +40,24 @@ type State = {
   overStartRuns: number;
   overStartWkts: number;
 };
+
+type State = ScoreState;
+
+export type ScoreboardRecovery = {
+  version: 1;
+  config: MatchConfig;
+  inningsNo: 1 | 2;
+  target: number | null;
+  firstInnings: InningsCard | null;
+  history: ScoreState[];
+  shareId: string;
+  mom: string;
+  pendingBatter: boolean;
+  pendingBowler: boolean;
+  nameInput: string;
+};
+
+export const ACTIVE_MATCH_STORAGE_KEY = "cricmaster:active-match:v1";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 const mkBatter = (name: string): Batter => ({
@@ -85,9 +104,13 @@ const BOWLER_CREDITED: WicketType[] = [
 export function Scoreboard({
   config,
   onReset,
+  recovery,
+  onSaved,
 }: {
   config: MatchConfig;
   onReset: () => void;
+  recovery?: ScoreboardRecovery | null;
+  onSaved?: () => void;
 }) {
   const totalBalls = config.overs * 6;
   const playersPerTeam = config.playersPerTeam ?? 11;
@@ -121,18 +144,20 @@ export function Scoreboard({
     overStartWkts: 0,
   });
 
-  const [shareId] = useState(uid);
-  const [inningsNo, setInningsNo] = useState<1 | 2>(1);
-  const [target, setTarget] = useState<number | null>(null);
-  const [firstInnings, setFirstInnings] = useState<InningsCard | null>(null);
-  const [history, setHistory] = useState<State[]>([
-    makeInit(config.striker, config.nonStriker, config.bowler),
-  ]);
+  const [shareId] = useState(() => recovery?.shareId || uid());
+  const [inningsNo, setInningsNo] = useState<1 | 2>(() => recovery?.inningsNo ?? 1);
+  const [target, setTarget] = useState<number | null>(() => recovery?.target ?? null);
+  const [firstInnings, setFirstInnings] = useState<InningsCard | null>(
+    () => recovery?.firstInnings ?? null,
+  );
+  const [history, setHistory] = useState<State[]>(
+    () => recovery?.history ?? [makeInit(config.striker, config.nonStriker, config.bowler)],
+  );
   const state = history[history.length - 1];
 
-  const [pendingBatter, setPendingBatter] = useState(false);
-  const [pendingBowler, setPendingBowler] = useState(false);
-  const [nameInput, setNameInput] = useState("");
+  const [pendingBatter, setPendingBatter] = useState(() => recovery?.pendingBatter ?? false);
+  const [pendingBowler, setPendingBowler] = useState(() => recovery?.pendingBowler ?? false);
+  const [nameInput, setNameInput] = useState(() => recovery?.nameInput ?? "");
 
   // extras + wicket dialogs
   const [extraKind, setExtraKind] = useState<"wd" | "nb" | "b" | "lb" | null>(
@@ -150,9 +175,10 @@ export function Scoreboard({
   const [s2Bowler, setS2Bowler] = useState("");
 
   // result / save
-  const [mom, setMom] = useState("");
+  const [mom, setMom] = useState(() => recovery?.mom ?? "");
   const [savedId, setSavedId] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
+  const recoveryWarningShown = useRef(false);
 
   const battingTeam = inningsNo === 1 ? battingFirst : bowlingFirst;
   const bowlingTeam = inningsNo === 1 ? bowlingFirst : battingFirst;
@@ -161,6 +187,39 @@ export function Scoreboard({
   const chaseDone = inningsNo === 2 && target != null && state.runs >= target;
   const inningsDone = state.legalBalls >= totalBalls || allOut || chaseDone;
   const matchOver = inningsNo === 2 && inningsDone;
+
+  useEffect(() => {
+    if (savedId) return;
+
+    let savedHistory = history;
+    while (savedHistory.length > 0) {
+      const snapshot: ScoreboardRecovery = {
+        version: 1,
+        config,
+        inningsNo,
+        target,
+        firstInnings,
+        history: savedHistory,
+        shareId,
+        mom,
+        pendingBatter,
+        pendingBowler,
+        nameInput,
+      };
+      try {
+        window.localStorage.setItem(ACTIVE_MATCH_STORAGE_KEY, JSON.stringify(snapshot));
+        return;
+      } catch {
+        if (savedHistory.length <= 1) break;
+        savedHistory = savedHistory.slice(Math.ceil(savedHistory.length / 4));
+      }
+    }
+
+    if (!recoveryWarningShown.current) {
+      recoveryWarningShown.current = true;
+      toast.warning("Automatic match recovery is unavailable on this device.");
+    }
+  }, [config, firstInnings, history, inningsNo, mom, nameInput, pendingBatter, pendingBowler, savedId, shareId, target]);
 
   const battingLineup = lineupOf(battingTeam);
   const bowlingLineup = lineupOf(bowlingTeam);
@@ -491,6 +550,8 @@ export function Scoreboard({
       });
     }
     setSavedId(rec.id);
+    window.localStorage.removeItem(ACTIVE_MATCH_STORAGE_KEY);
+    onSaved?.();
     void saveCareerMatch(rec);
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
@@ -699,12 +760,15 @@ export function Scoreboard({
                     >
                       View Full Scorecard
                     </Link>
-                    <button
-                      onClick={onReset}
+                    <ConfirmButton
+                      onConfirm={onReset}
+                      title="Start a new match?"
+                      description="Your completed scorecard is saved. Start a new match and leave this scoreboard?"
+                      confirmLabel="Start new match"
                       className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:border-primary"
                     >
                       New Match
-                    </button>
+                    </ConfirmButton>
                   </div>
                 </div>
               ) : (
@@ -816,12 +880,15 @@ export function Scoreboard({
                 >
                   {shared ? "✓ Link copied" : "Share Live"}
                 </button>
-                <button
-                  onClick={onReset}
+                <ConfirmButton
+                  onConfirm={onReset}
+                  title="Leave this match?"
+                  description="This will discard the in-progress match. Your saved recovery will be removed."
+                  confirmLabel="Discard match"
                   className="col-span-2 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-white/5 sm:col-span-1 sm:text-sm"
                 >
                   New Match
-                </button>
+                </ConfirmButton>
               </div>
               <p className="mt-3 text-center text-[11px] text-muted-foreground">
                 Shortcuts: 0–7 runs • W wicket • D wide • N no-ball • U undo.
