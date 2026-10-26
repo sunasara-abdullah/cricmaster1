@@ -34,15 +34,15 @@ import {
 export const Route = createFileRoute("/players/$name")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.name} — Player Profile | CricMaster` },
+      { title: `${params.name} — Player Profile | Playnivo` },
       {
         name: "description",
-        content: `Career batting and bowling stats for ${params.name} on CricMaster.`,
+        content: `Career batting and bowling stats for ${params.name} on Playnivo.`,
       },
-      { property: "og:title", content: `${params.name} — Player Profile | CricMaster` },
+      { property: "og:title", content: `${params.name} — Player Profile | Playnivo` },
       {
         property: "og:description",
-        content: `Career batting and bowling stats for ${params.name} on CricMaster.`,
+        content: `Career batting and bowling stats for ${params.name} on Playnivo.`,
       },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary" },

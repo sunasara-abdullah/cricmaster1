@@ -10,7 +10,7 @@ import {
 import { oversText } from "@/lib/cricket";
 
 export const Route = createFileRoute("/live/$id")({
-  head: () => ({ meta: [{ title: "Live Match — CricMaster" }] }),
+  head: () => ({ meta: [{ title: "Live Match — Playnivo" }] }),
   component: LivePage,
 });
 

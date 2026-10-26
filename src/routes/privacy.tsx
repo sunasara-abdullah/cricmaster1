@@ -4,19 +4,19 @@ import { Navbar } from "@/components/cricmaster/Navbar";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — CricMaster" },
+      { title: "Privacy Policy — Playnivo" },
       {
         name: "description",
         content:
-          "How CricMaster collects, stores and protects your account details, match data and player statistics.",
+          "How Playnivo collects, stores and protects your account details, match data and player statistics.",
       },
-      { property: "og:title", content: "Privacy Policy — CricMaster" },
-      { property: "og:description", content: "What data CricMaster stores and how it is used." },
+      { property: "og:title", content: "Privacy Policy — Playnivo" },
+      { property: "og:description", content: "What data Playnivo stores and how it is used." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cricmaster1.lovable.app/privacy" },
+      { property: "og:url", content: "https://playnivo.lovable.app/privacy" },
       { name: "twitter:card", content: "summary" },
     ],
-    links: [{ rel: "canonical", href: "https://cricmaster1.lovable.app/privacy" }],
+    links: [{ rel: "canonical", href: "https://playnivo.lovable.app/privacy" }],
   }),
   component: PrivacyPage,
 });
@@ -28,7 +28,7 @@ function PrivacyPage() {
       <main className="mx-auto max-w-3xl px-4 py-12">
         <h1 className="font-heading text-4xl font-bold tracking-tight">Privacy Policy</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Last updated: {new Date().getFullYear()}. This page is maintained by the CricMaster
+          Last updated: {new Date().getFullYear()}. This page is maintained by the Playnivo
           team and explains what we store and why.
         </p>
 
@@ -71,7 +71,7 @@ function PrivacyPage() {
             <p className="mt-2">
               You can edit your name and photo, delete individual matches, clear all local data
               from the app, sign out of all devices, or contact us to have your account data
-              removed. Signing out also clears CricMaster data stored in your browser.
+              removed. Signing out also clears Playnivo data stored in your browser.
             </p>
           </section>
           <section>

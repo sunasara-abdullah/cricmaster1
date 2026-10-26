@@ -13,19 +13,19 @@ const PAGE = 10;
 export const Route = createFileRoute("/matches/")({
   head: () => ({
     meta: [
-      { title: "Match History & Scorecards — CricMaster" },
+      { title: "Match History & Scorecards — Playnivo" },
       {
         name: "description",
         content:
-          "Browse completed match scorecards with full batting and bowling cards, results and Man of the Match awards on CricMaster.",
+          "Browse completed match scorecards with full batting and bowling cards, results and Man of the Match awards on Playnivo.",
       },
-      { property: "og:title", content: "Match History & Scorecards — CricMaster" },
+      { property: "og:title", content: "Match History & Scorecards — Playnivo" },
       {
         property: "og:description",
         content: "Full scorecards, results and awards for every completed match.",
       },
-      { property: "og:image", content: "https://cricmaster1.lovable.app/og-matches.jpg" },
-      { name: "twitter:image", content: "https://cricmaster1.lovable.app/og-matches.jpg" },
+      { property: "og:image", content: "https://playnivo.lovable.app/og-matches.jpg" },
+      { name: "twitter:image", content: "https://playnivo.lovable.app/og-matches.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

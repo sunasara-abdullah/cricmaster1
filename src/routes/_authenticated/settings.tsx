@@ -8,11 +8,11 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Profile & Settings — CricMaster" },
+      { title: "Profile & Settings — Playnivo" },
       {
         name: "description",
         content:
-          "Manage your CricMaster profile photo, display name, password and active sessions.",
+          "Manage your Playnivo profile photo, display name, password and active sessions.",
       },
     ],
   }),

@@ -18,19 +18,19 @@ const PAGE = 25;
 export const Route = createFileRoute("/players/")({
   head: () => ({
     meta: [
-      { title: "Player Stats Dashboard — CricMaster" },
+      { title: "Player Stats Dashboard — Playnivo" },
       {
         name: "description",
         content:
-          "Lifetime batting and bowling stats for every player — runs, averages, strike rates, wickets and economy across all your CricMaster matches.",
+          "Lifetime batting and bowling stats for every player — runs, averages, strike rates, wickets and economy across all your Playnivo matches.",
       },
-      { property: "og:title", content: "Player Stats Dashboard — CricMaster" },
+      { property: "og:title", content: "Player Stats Dashboard — Playnivo" },
       {
         property: "og:description",
         content: "Career batting & bowling leaderboards across all your matches.",
       },
-      { property: "og:image", content: "https://cricmaster1.lovable.app/og-players.jpg" },
-      { name: "twitter:image", content: "https://cricmaster1.lovable.app/og-players.jpg" },
+      { property: "og:image", content: "https://playnivo.lovable.app/og-players.jpg" },
+      { name: "twitter:image", content: "https://playnivo.lovable.app/og-players.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

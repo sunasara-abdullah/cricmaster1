@@ -13,19 +13,19 @@ import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 export const Route = createFileRoute("/leagues/")({
   head: () => ({
     meta: [
-      { title: "Leagues & Competitions — CricMaster" },
+      { title: "Leagues & Competitions — Playnivo" },
       {
         name: "description",
         content:
-          "Create leagues and competitions, register teams and organise your cricket match schedules all in one place with CricMaster.",
+          "Create leagues and competitions, register teams and organise your cricket match schedules all in one place with Playnivo.",
       },
-      { property: "og:title", content: "Leagues & Competitions — CricMaster" },
+      { property: "og:title", content: "Leagues & Competitions — Playnivo" },
       {
         property: "og:description",
         content: "Organise teams and match schedules by competition.",
       },
-      { property: "og:image", content: "https://cricmaster1.lovable.app/og-leagues.jpg" },
-      { name: "twitter:image", content: "https://cricmaster1.lovable.app/og-leagues.jpg" },
+      { property: "og:image", content: "https://playnivo.lovable.app/og-leagues.jpg" },
+      { name: "twitter:image", content: "https://playnivo.lovable.app/og-leagues.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

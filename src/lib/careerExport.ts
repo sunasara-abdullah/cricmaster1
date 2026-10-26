@@ -101,7 +101,7 @@ export function exportCareerPdf(matches: CareerMatch[], name: string) {
   const doc = new jsPDF();
   doc.setFontSize(20);
   doc.setTextColor(...PRIMARY);
-  doc.text("CricMaster", 14, 20);
+  doc.text("Playnivo", 14, 20);
   doc.setFontSize(14);
   doc.setTextColor(20, 20, 20);
   doc.text(`${name || "Player"} — Career History`, 14, 30);

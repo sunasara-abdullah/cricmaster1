@@ -7,27 +7,27 @@ import { Navbar } from "@/components/cricmaster/Navbar";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact & Support — CricMaster" },
+      { title: "Contact & Support — Playnivo" },
       {
         name: "description",
         content:
-          "Get help with CricMaster scoring, accounts or leagues. Send us a support message and we'll get back to you.",
+          "Get help with Playnivo scoring, accounts or leagues. Send us a support message and we'll get back to you.",
       },
-      { property: "og:title", content: "Contact & Support — CricMaster" },
+      { property: "og:title", content: "Contact & Support — Playnivo" },
       {
         property: "og:description",
-        content: "Reach the CricMaster team for scoring help, bugs or feature requests.",
+        content: "Reach the Playnivo team for scoring help, bugs or feature requests.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cricmaster1.lovable.app/contact" },
+      { property: "og:url", content: "https://playnivo.lovable.app/contact" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://cricmaster1.lovable.app/contact" }],
+    links: [{ rel: "canonical", href: "https://playnivo.lovable.app/contact" }],
   }),
   component: ContactPage,
 });
 
-const SUPPORT_EMAIL = "support@cricmaster1.lovable.app";
+const SUPPORT_EMAIL = "supportplaynivo@gmail.com";
 
 function ContactPage() {
   const [name, setName] = useState("");
@@ -56,7 +56,7 @@ function ContactPage() {
       toast.error("Please fix the highlighted fields.");
       return;
     }
-    const subject = encodeURIComponent(`[CricMaster ${topic}] from ${name.trim()}`);
+    const subject = encodeURIComponent(`[Playnivo ${topic}] from ${name.trim()}`);
     const body = encodeURIComponent(`${message.trim()}\n\n— ${name.trim()} (${email.trim()})`);
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     toast.success("Opening your email app with the message ready to send.");

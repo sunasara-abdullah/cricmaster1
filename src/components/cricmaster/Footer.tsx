@@ -34,7 +34,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Link to="/" className="flex items-center gap-2">
-            <img src={markUrl} alt="CricMaster logo" className="h-8 w-auto" />
+            <img src={markUrl} alt="Playnivo logo" className="h-8 w-auto" />
             <span className="font-heading text-xl font-bold tracking-tighter">
               <span className="text-foreground">Cric</span>
               <span className="text-primary">Master</span>
@@ -66,7 +66,7 @@ export function Footer() {
         ))}
       </div>
       <div className="border-t border-border px-4 py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} CricMaster. All rights reserved.
+        © {new Date().getFullYear()} Playnivo. All rights reserved.
       </div>
     </footer>
   );

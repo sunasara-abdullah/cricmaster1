@@ -8,23 +8,23 @@ import markUrl from "@/assets/cricmaster-logo.png";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Login or Sign Up — CricMaster" },
+      { title: "Login or Sign Up — Playnivo" },
       {
         name: "description",
         content:
-          "Sign in to CricMaster to save your cricket career, match history and player stats across all your devices.",
+          "Sign in to Playnivo to save your cricket career, match history and player stats across all your devices.",
       },
-      { property: "og:title", content: "Login or Sign Up — CricMaster" },
+      { property: "og:title", content: "Login or Sign Up — Playnivo" },
       {
         property: "og:description",
         content:
-          "Create a free CricMaster account to sync your matches, scorecards and career stats across devices.",
+          "Create a free Playnivo account to sync your matches, scorecards and career stats across devices.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cricmaster1.lovable.app/auth" },
+      { property: "og:url", content: "https://playnivo.lovable.app/auth" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://cricmaster1.lovable.app/auth" }],
+    links: [{ rel: "canonical", href: "https://playnivo.lovable.app/auth" }],
   }),
   component: AuthPage,
 });
@@ -131,7 +131,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <img src={markUrl} alt="CricMaster" className="h-10 w-auto" />
+          <img src={markUrl} alt="Playnivo" className="h-10 w-auto" />
           <span className="font-heading text-2xl font-bold tracking-tighter">
             <span className="text-foreground">Cric</span>
             <span className="text-primary">Master</span>

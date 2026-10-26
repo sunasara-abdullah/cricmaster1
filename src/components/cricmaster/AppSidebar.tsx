@@ -44,7 +44,7 @@ const account: Item[] = [
 ];
 
 const more: Item[] = [
-  { to: "/about", label: "About", desc: "What CricMaster does", icon: Info },
+  { to: "/about", label: "About", desc: "What Playnivo does", icon: Info },
   { to: "/contact", label: "Support", desc: "Help & contact", icon: LifeBuoy },
   { to: "/terms", label: "Terms", desc: "Terms of service", icon: FileText },
   { to: "/privacy", label: "Privacy", desc: "Privacy policy", icon: Lock },
@@ -95,7 +95,7 @@ export function AppSidebar() {
       <SheetContent side="left" className="w-[86vw] max-w-sm overflow-y-auto p-0">
         <SheetHeader className="border-b border-border px-4 py-4 text-left">
           <SheetTitle className="flex items-center gap-2">
-            <img src={markUrl} alt="CricMaster logo" className="h-8 w-auto" />
+            <img src={markUrl} alt="Playnivo logo" className="h-8 w-auto" />
             <span className="font-heading text-xl font-bold tracking-tighter">
               <span className="text-foreground">Cric</span>
               <span className="text-primary">Master</span>

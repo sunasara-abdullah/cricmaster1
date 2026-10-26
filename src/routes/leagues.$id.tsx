@@ -23,7 +23,7 @@ import {
 const FIXTURE_KEY = "cricmaster:pendingFixture";
 
 export const Route = createFileRoute("/leagues/$id")({
-  head: () => ({ meta: [{ title: "League — CricMaster" }] }),
+  head: () => ({ meta: [{ title: "League — Playnivo" }] }),
   component: LeagueDetailPage,
 });
 
