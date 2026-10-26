@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import markUrl from "@/assets/cricmaster-mark.png";
+import { lovable } from "@/integrations/lovable/index";
+import markUrl from "@/assets/cricmaster-logo.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -115,16 +116,15 @@ function AuthPage() {
 
   const google = async () => {
     setError("");
-    // Supabase native OAuth works on any domain (Lovable, custom domain, or
-    // self-hosted server) — the Lovable broker only allows Lovable domains.
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    if (error) {
+    if (result.error) {
       setError("Google sign-in fail hua. Dobara try karein.");
+      return;
     }
-    // Browser redirects to Google; session is picked up on return.
+    if (result.redirected) return;
+    navigate({ to: "/career" });
   };
 
   return (
