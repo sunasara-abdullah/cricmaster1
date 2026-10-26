@@ -59,7 +59,7 @@ export function Landing({ onGetStarted }: { onGetStarted: () => void }) {
             <span className="text-primary">Pro</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            CricMaster gives you everything to run a match — live ball-by-ball
+            Playnivo gives you everything to run a match — live ball-by-ball
             scoring, full scorecards, player stats, leagues, standings and more.
             All in one professional platform.
           </p>

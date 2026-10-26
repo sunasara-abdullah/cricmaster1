@@ -8,7 +8,7 @@ import { TeamLogo } from "./teams.index";
 
 export const Route = createFileRoute("/teams/$name")({
   head: ({ params }) => ({
-    meta: [{ title: `${params.name} — Team Profile | CricMaster` }],
+    meta: [{ title: `${params.name} — Team Profile | Playnivo` }],
   }),
   component: TeamProfile,
 });

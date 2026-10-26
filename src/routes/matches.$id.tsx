@@ -20,11 +20,11 @@ export const Route = createFileRoute("/matches/$id")({
   head: ({ params }) => {
     const match = typeof window !== "undefined" ? getMatch(params.id) : undefined;
     const title = match
-      ? `${match.teamA} vs ${match.teamB} — Scorecard | CricMaster`
-      : "Scorecard — CricMaster";
+      ? `${match.teamA} vs ${match.teamB} — Scorecard | Playnivo`
+      : "Scorecard — Playnivo";
     const description = match
-      ? `${match.result}. ${match.teamA} vs ${match.teamB}, ${match.overs} overs at ${match.venue}. Full ball-by-ball scorecard on CricMaster.`
-      : "View the full ball-by-ball scorecard on CricMaster.";
+      ? `${match.result}. ${match.teamA} vs ${match.teamB}, ${match.overs} overs at ${match.venue}. Full ball-by-ball scorecard on Playnivo.`
+      : "View the full ball-by-ball scorecard on Playnivo.";
     return {
       meta: [
         { title },

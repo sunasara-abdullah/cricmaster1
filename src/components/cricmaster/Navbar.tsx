@@ -47,7 +47,7 @@ export function Navbar() {
           >
             <img
               src={markUrl}
-              alt="CricMaster logo"
+              alt="Playnivo logo"
               className="h-9 w-auto md:h-10"
             />
             <span className="font-heading text-2xl font-bold tracking-tighter">

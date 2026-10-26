@@ -11,13 +11,13 @@ const FIXTURE_KEY = "cricmaster:pendingFixture";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CricMaster — Pro Live Cricket Scoring" },
+      { title: "Playnivo — Pro Live Cricket Scoring" },
       {
         name: "description",
         content:
-          "CricMaster is a professional ball-by-ball cricket scoring app with toss, two-innings flow, live scoreboard, scorecards, player & team stats and leagues.",
+          "Playnivo is a professional ball-by-ball cricket scoring app with toss, two-innings flow, live scoreboard, scorecards, player & team stats and leagues.",
       },
-      { property: "og:title", content: "CricMaster — Pro Live Cricket Scoring" },
+      { property: "og:title", content: "Playnivo — Pro Live Cricket Scoring" },
       {
         property: "og:description",
         content:

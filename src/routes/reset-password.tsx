@@ -6,10 +6,10 @@ import markUrl from "@/assets/cricmaster-logo.png";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Reset Password — CricMaster" },
+      { title: "Reset Password — Playnivo" },
       {
         name: "description",
-        content: "Set a new password for your CricMaster account.",
+        content: "Set a new password for your Playnivo account.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -68,7 +68,7 @@ function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <img src={markUrl} alt="CricMaster" className="h-10 w-auto" />
+          <img src={markUrl} alt="Playnivo" className="h-10 w-auto" />
           <span className="font-heading text-2xl font-bold tracking-tighter">
             <span className="text-foreground">Cric</span>
             <span className="text-primary">Master</span>

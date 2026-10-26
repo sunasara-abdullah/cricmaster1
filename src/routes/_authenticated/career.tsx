@@ -18,7 +18,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/career")({
   head: () => ({
     meta: [
-      { title: "My Career — CricMaster" },
+      { title: "My Career — Playnivo" },
       {
         name: "description",
         content: "Your saved cricket career: matches, results and awards.",

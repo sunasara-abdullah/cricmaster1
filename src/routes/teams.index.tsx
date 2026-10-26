@@ -18,19 +18,19 @@ const PAGE = 12;
 export const Route = createFileRoute("/teams/")({
   head: () => ({
     meta: [
-      { title: "Teams & Squads — CricMaster" },
+      { title: "Teams & Squads — Playnivo" },
       {
         name: "description",
         content:
           "Create team profiles with logos and squads, and track win percentage and records across all your cricket matches.",
       },
-      { property: "og:title", content: "Teams & Squads — CricMaster" },
+      { property: "og:title", content: "Teams & Squads — Playnivo" },
       {
         property: "og:description",
         content: "Team profiles, squads, logos and win records.",
       },
-      { property: "og:image", content: "https://cricmaster1.lovable.app/og-teams.jpg" },
-      { name: "twitter:image", content: "https://cricmaster1.lovable.app/og-teams.jpg" },
+      { property: "og:image", content: "https://playnivo.lovable.app/og-teams.jpg" },
+      { name: "twitter:image", content: "https://playnivo.lovable.app/og-teams.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

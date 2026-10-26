@@ -70,9 +70,9 @@ export function GlobalPlayerSearch() {
     return (
       <section className="mb-8 rounded-2xl border border-border bg-card p-6 text-center">
         <Globe className="mx-auto mb-2 size-6 text-primary" />
-        <h2 className="font-heading text-xl font-bold">Search every player on CricMaster</h2>
+        <h2 className="font-heading text-xl font-bold">Search every player on Playnivo</h2>
         <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-          Login karein aur poore CricMaster network ke players ki lifetime batting &
+          Login karein aur poore Playnivo network ke players ki lifetime batting &
           bowling history search karein.
         </p>
         <Link
@@ -99,8 +99,8 @@ export function GlobalPlayerSearch() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search any player on CricMaster"
-            aria-label="Search all players on CricMaster"
+            placeholder="Search any player on Playnivo"
+            aria-label="Search all players on Playnivo"
             className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-2 text-xs outline-none focus:border-primary"
           />
         </div>

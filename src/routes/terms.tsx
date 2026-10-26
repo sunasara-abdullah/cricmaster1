@@ -4,19 +4,19 @@ import { Navbar } from "@/components/cricmaster/Navbar";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — CricMaster" },
+      { title: "Terms of Service — Playnivo" },
       {
         name: "description",
         content:
-          "The terms that govern your use of CricMaster accounts, cricket scoring data and shared live match links.",
+          "The terms that govern your use of Playnivo accounts, cricket scoring data and shared live match links.",
       },
-      { property: "og:title", content: "Terms of Service — CricMaster" },
-      { property: "og:description", content: "Rules for using CricMaster accounts and scoring data." },
+      { property: "og:title", content: "Terms of Service — Playnivo" },
+      { property: "og:description", content: "Rules for using Playnivo accounts and scoring data." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://cricmaster1.lovable.app/terms" },
+      { property: "og:url", content: "https://playnivo.lovable.app/terms" },
       { name: "twitter:card", content: "summary" },
     ],
-    links: [{ rel: "canonical", href: "https://cricmaster1.lovable.app/terms" }],
+    links: [{ rel: "canonical", href: "https://playnivo.lovable.app/terms" }],
   }),
   component: TermsPage,
 });
@@ -28,15 +28,15 @@ function TermsPage() {
       <main className="mx-auto max-w-3xl px-4 py-12">
         <h1 className="font-heading text-4xl font-bold tracking-tight">Terms of Service</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Last updated: {new Date().getFullYear()}. This page is maintained by the CricMaster
+          Last updated: {new Date().getFullYear()}. This page is maintained by the Playnivo
           team and describes how the app may be used.
         </p>
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-muted-foreground">
           <section>
-            <h2 className="font-heading text-xl font-bold text-foreground">1. Using CricMaster</h2>
+            <h2 className="font-heading text-xl font-bold text-foreground">1. Using Playnivo</h2>
             <p className="mt-2">
-              CricMaster lets you score cricket matches, keep player and team records and run
+              Playnivo lets you score cricket matches, keep player and team records and run
               leagues. You may use it for personal, club or tournament purposes. You are
               responsible for the accuracy of the scores and player details you enter.
             </p>
@@ -69,7 +69,7 @@ function TermsPage() {
           <section>
             <h2 className="font-heading text-xl font-bold text-foreground">5. Availability</h2>
             <p className="mt-2">
-              We work to keep CricMaster running, but the service is provided "as is" without
+              We work to keep Playnivo running, but the service is provided "as is" without
               guarantees of uninterrupted availability. Keep your own record of anything
               critical, such as official tournament results.
             </p>
@@ -77,7 +77,7 @@ function TermsPage() {
           <section>
             <h2 className="font-heading text-xl font-bold text-foreground">6. Ending use</h2>
             <p className="mt-2">
-              You can stop using CricMaster at any time and delete your matches and account
+              You can stop using Playnivo at any time and delete your matches and account
               data from the settings page. We may suspend accounts that abuse the service or
               other users.
             </p>

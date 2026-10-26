@@ -9,7 +9,7 @@ import { loadLeagues } from "./leagues";
  * Every signed-in scorer mirrors their local player profiles into the
  * `global_players` table. Any signed-in user can then search the whole
  * directory and see the lifetime history of every player recorded in
- * CricMaster, not just the ones they scored themselves.
+ * Playnivo, not just the ones they scored themselves.
  */
 
 export type GlobalPlayer = {
