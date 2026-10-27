@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, LogIn, User, Settings } from "lucide-react";
-import markUrl from "@/assets/cricmaster-logo.png";
+import markUrl from "@/assets/playnivo-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
@@ -50,10 +50,6 @@ export function Navbar() {
               alt="Playnivo logo"
               className="h-9 w-auto md:h-10"
             />
-            <span className="font-heading text-2xl font-bold tracking-tighter">
-              <span className="text-foreground">Cric</span>
-              <span className="text-primary">Master</span>
-            </span>
           </Link>
           <div className="hidden gap-5 text-sm font-medium text-muted-foreground lg:flex">
             {links.map((l) => (

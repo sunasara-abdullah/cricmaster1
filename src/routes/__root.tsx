@@ -102,8 +102,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Playnivo — Pro Live Cricket Scoring" },
       { name: "twitter:description", content: "Broadcast-grade live cricket scoring: toss, two innings, scorecards, stats, leagues and more." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/By7cNN90pQPVSrTKR08ZptMFPgH2/social-images/social-1782363771830-cricmaster.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/By7cNN90pQPVSrTKR08ZptMFPgH2/social-images/social-1782363771830-cricmaster.webp" },
+      { property: "og:image", content: "https://playnivo.lovable.app/og-matches.jpg" },
+      { name: "twitter:image", content: "https://playnivo.lovable.app/og-matches.jpg" },
     ],
     links: [
       {
