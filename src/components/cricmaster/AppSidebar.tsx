@@ -22,7 +22,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import markUrl from "@/assets/cricmaster-logo.png";
+import markUrl from "@/assets/playnivo-logo.png";
 import { useAuth } from "@/hooks/useAuth";
 
 type Item = { to: string; label: string; desc: string; icon: typeof Radio };

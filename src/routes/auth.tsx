@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import markUrl from "@/assets/cricmaster-logo.png";
+import markUrl from "@/assets/playnivo-logo.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, LogIn, User, Settings } from "lucide-react";
-import markUrl from "@/assets/cricmaster-logo.png";
+import markUrl from "@/assets/playnivo-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";

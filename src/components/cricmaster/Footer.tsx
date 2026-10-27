@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import markUrl from "@/assets/cricmaster-logo.png";
+import markUrl from "@/assets/playnivo-logo.png";
 
 const groups = [
   {
