@@ -34,11 +34,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Link to="/" className="flex items-center gap-2">
-            <img src={markUrl} alt="Playnivo logo" className="h-8 w-auto" />
-            <span className="font-heading text-xl font-bold tracking-tighter">
-              <span className="text-foreground">Cric</span>
-              <span className="text-primary">Master</span>
-            </span>
+            <img src={markUrl} alt="Playnivo logo" className="h-9 w-auto" />
           </Link>
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">
             Broadcast-grade cricket scoring — ball-by-ball live scoring, scorecards,

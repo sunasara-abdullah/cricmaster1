@@ -95,11 +95,7 @@ export function AppSidebar() {
       <SheetContent side="left" className="w-[86vw] max-w-sm overflow-y-auto p-0">
         <SheetHeader className="border-b border-border px-4 py-4 text-left">
           <SheetTitle className="flex items-center gap-2">
-            <img src={markUrl} alt="Playnivo logo" className="h-8 w-auto" />
-            <span className="font-heading text-xl font-bold tracking-tighter">
-              <span className="text-foreground">Cric</span>
-              <span className="text-primary">Master</span>
-            </span>
+            <img src={markUrl} alt="Playnivo logo" className="h-9 w-auto" />
           </SheetTitle>
         </SheetHeader>
         <nav className="px-3 py-4">
