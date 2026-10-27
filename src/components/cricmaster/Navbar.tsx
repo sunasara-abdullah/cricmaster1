@@ -50,10 +50,6 @@ export function Navbar() {
               alt="Playnivo logo"
               className="h-9 w-auto md:h-10"
             />
-            <span className="font-heading text-2xl font-bold tracking-tighter">
-              <span className="text-foreground">Cric</span>
-              <span className="text-primary">Master</span>
-            </span>
           </Link>
           <div className="hidden gap-5 text-sm font-medium text-muted-foreground lg:flex">
             {links.map((l) => (
