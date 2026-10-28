@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Mail, MessageSquare, LifeBuoy } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -50,16 +51,34 @@ function ContactPage() {
     return Object.keys(e).length === 0;
   };
 
-  const submit = (ev: React.FormEvent) => {
+  const [sending, setSending] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  const submit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validate()) {
       toast.error("Please fix the highlighted fields.");
       return;
     }
-    const subject = encodeURIComponent(`[Playnivo ${topic}] from ${name.trim()}`);
-    const body = encodeURIComponent(`${message.trim()}\n\n— ${name.trim()} (${email.trim()})`);
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
-    toast.success("Opening your email app with the message ready to send.");
+    if (sending) return;
+    setSending(true);
+    const { error } = await supabase.from("feedback_messages").insert({
+      name: name.trim(),
+      email: email.trim(),
+      topic,
+      message: message.trim(),
+    });
+    setSending(false);
+    if (error) {
+      toast.error("Message could not be sent. Please try again in a moment.");
+      return;
+    }
+    setSentTo(email.trim());
+    setName("");
+    setEmail("");
+    setTopic("Support");
+    setMessage("");
+    toast.success("Message received! We'll reply to your email.");
   };
 
   const field =
