@@ -59,6 +59,36 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_messages: {
+        Row: {
+          created_at: string
+          email: string
+          emailed: boolean
+          id: string
+          message: string
+          name: string
+          topic: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          emailed?: boolean
+          id?: string
+          message: string
+          name: string
+          topic?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          emailed?: boolean
+          id?: string
+          message?: string
+          name?: string
+          topic?: string
+        }
+        Relationships: []
+      }
       global_players: {
         Row: {
           batting: Json
