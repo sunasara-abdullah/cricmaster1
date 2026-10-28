@@ -139,10 +139,23 @@ function ContactPage() {
               <span className="text-xs text-muted-foreground">{message.length}/1000</span>
             </div>
           </div>
-          <button type="submit" className="w-full rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:bg-primary-hover">
-            Send message
+          <button
+            type="submit"
+            disabled={sending}
+            className="w-full rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-60"
+          >
+            {sending ? "Sending…" : "Send message"}
           </button>
         </form>
+
+        {sentTo && (
+          <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/10 p-5 text-sm">
+            <p className="font-bold">Thanks — your message is with us.</p>
+            <p className="mt-1 text-muted-foreground">
+              We'll reply to <span className="font-medium text-foreground">{sentTo}</span>, usually within 2 working days.
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );
