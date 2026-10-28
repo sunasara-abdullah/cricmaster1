@@ -69,10 +69,7 @@ function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2">
           <img src={markUrl} alt="Playnivo" className="h-10 w-auto" />
-          <span className="font-heading text-2xl font-bold tracking-tighter">
-            <span className="text-foreground">Cric</span>
-            <span className="text-primary">Master</span>
-          </span>
+          
         </Link>
         <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
           <h1 className="font-heading text-2xl font-bold">Set new password</h1>
