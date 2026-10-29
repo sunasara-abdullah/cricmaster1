@@ -24,6 +24,7 @@ const groups = [
     links: [
       { to: "/terms", label: "Terms of Service" },
       { to: "/privacy", label: "Privacy Policy" },
+      { to: "/cookies", label: "Cookies" },
     ],
   },
 ] as const;
