@@ -7,3 +7,5 @@
 - [x] Feedback form saves every message to the backend (feedback_messages table)
 - [ ] Email feedback forward to supportplaynivo@gmail.com — blocked on sender-domain setup (user must complete email domain dialog)
 - [ ] Publish app; populate global player directory; test team/league/season filters + sort
+- [x] Feedback submit opens the visitor's email app pre-filled (mailto) + backup copy stored
+- [x] Cookie consent banner + /cookies policy page + footer cookie link

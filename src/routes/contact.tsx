@@ -54,6 +54,18 @@ function ContactPage() {
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
+  const buildMailto = () => {
+    const subject = `[Playnivo Feedback] ${topic}`;
+    const body = [
+      `Name: ${name.trim()}`,
+      `Email: ${email.trim()}`,
+      `Topic: ${topic}`,
+      "",
+      message.trim(),
+    ].join("\n");
+    return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const submit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!validate()) {
@@ -62,6 +74,9 @@ function ContactPage() {
     }
     if (sending) return;
     setSending(true);
+    // Open the visitor's own email app with everything pre-filled.
+    window.location.href = buildMailto();
+    // Keep a copy with us too, so the feedback is never lost.
     const { error } = await supabase.from("feedback_messages").insert({
       name: name.trim(),
       email: email.trim(),
@@ -70,15 +85,17 @@ function ContactPage() {
     });
     setSending(false);
     if (error) {
-      toast.error("Message could not be sent. Please try again in a moment.");
-      return;
+      toast.error(
+        "Your email app is opening — but we could not keep a backup copy. Please press send in your email app.",
+      );
+    } else {
+      toast.success("Your email app is opening — press send to deliver your feedback.");
     }
     setSentTo(email.trim());
     setName("");
     setEmail("");
     setTopic("Support");
     setMessage("");
-    toast.success("Message received! We'll reply to your email.");
   };
 
   const field =
@@ -96,8 +113,17 @@ function ContactPage() {
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/50"
+          >
+            <Mail className="mb-2 size-5 text-primary" />
+            <h2 className="text-sm font-bold">Email us</h2>
+            <p className="mt-0.5 break-words text-xs text-muted-foreground">
+              {SUPPORT_EMAIL} — tap to open your email app
+            </p>
+          </a>
           {[
-            { icon: Mail, title: "Email us", desc: SUPPORT_EMAIL },
             { icon: LifeBuoy, title: "Response time", desc: "Usually within 2 working days" },
             { icon: MessageSquare, title: "Feedback", desc: "Feature requests welcome" },
           ].map((c) => (
@@ -144,15 +170,23 @@ function ContactPage() {
             disabled={sending}
             className="w-full rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-60"
           >
-            {sending ? "Sending…" : "Send message"}
+            {sending ? "Opening your email app…" : "Send feedback via email"}
           </button>
+          <p className="text-center text-xs text-muted-foreground">
+            Submitting opens your own email app with the message ready — you just press send.
+            A copy is also kept with us in case the email doesn't go through.
+          </p>
         </form>
 
         {sentTo && (
           <div className="mt-4 rounded-2xl border border-primary/40 bg-primary/10 p-5 text-sm">
-            <p className="font-bold">Thanks — your message is with us.</p>
+            <p className="font-bold">Your email app should be open now.</p>
             <p className="mt-1 text-muted-foreground">
-              We'll reply to <span className="font-medium text-foreground">{sentTo}</span>, usually within 2 working days.
+              If it didn't open, email us directly at{" "}
+              <a className="font-medium text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>
+                {SUPPORT_EMAIL}
+              </a>
+              . We reply to <span className="font-medium text-foreground">{sentTo}</span>, usually within 2 working days.
             </p>
           </div>
         )}
