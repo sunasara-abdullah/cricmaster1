@@ -14,6 +14,7 @@ import type { ErrorComponentProps } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Footer } from "@/components/cricmaster/Footer";
+import { CookieConsent } from "@/components/cricmaster/CookieConsent";
 import { supabase } from "@/integrations/supabase/client";
 import { purgeDemoData, purgeDemoDataEverywhere } from "@/lib/purgeDemo";
 import {
@@ -210,6 +211,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Footer />
+      <CookieConsent />
       <Toaster position="top-center" richColors closeButton />
     </QueryClientProvider>
   );
