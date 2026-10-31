@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Download, Pencil } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, Copy, Pencil, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
@@ -8,9 +9,12 @@ import {
   getMatch,
   editMatchLineup,
   deleteMatch,
+  setMatchAiReport,
   type InningsCard,
   type SavedMatch,
 } from "@/lib/matchHistory";
+import { generateMatchReport } from "@/lib/matchReport.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { rebuildStatsFromMatches } from "@/lib/playerStats";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 import { exportMatchPdf } from "@/lib/careerExport";
@@ -172,6 +176,8 @@ function ScorecardPage() {
                 </p>
               )}
             </header>
+
+            <AiReportCard match={match} onSaved={(m) => setMatch(m)} />
 
             <LineupEditor
               match={match}
