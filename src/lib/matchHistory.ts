@@ -15,6 +15,11 @@ export type InningsCard = {
   extras?: { wd: number; nb: number; b: number; lb: number };
 };
 
+export type MatchAiReport = {
+  content: string;
+  generatedAt: string;
+};
+
 export type SavedMatch = {
   id: string;
   date: string; // ISO
@@ -29,6 +34,8 @@ export type SavedMatch = {
   winner: string; // team name or "" for tie
   leagueId?: string;
   leagueMatchId?: string;
+  /** AI-generated shareable match report (Lovable AI). */
+  aiReport?: MatchAiReport;
 };
 
 export type MatchStore = Record<string, SavedMatch>;
