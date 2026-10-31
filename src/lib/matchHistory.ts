@@ -81,7 +81,10 @@ export const listMatches = (): SavedMatch[] =>
   Object.values(loadMatches()).sort((a, b) => b.date.localeCompare(a.date));
 
 /** Patch a saved match in place (used by the lineup editor). */
-export const updateMatch = (
+export const setMatchAiReport = (
+  id: string,
+  report: MatchAiReport | undefined,
+): SavedMatch | undefined => updateMatch(id, { aiReport: report });
   id: string,
   patch: Partial<Omit<SavedMatch, "id">>,
 ): SavedMatch | undefined => {
