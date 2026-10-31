@@ -15,6 +15,11 @@ export type InningsCard = {
   extras?: { wd: number; nb: number; b: number; lb: number };
 };
 
+export type MatchAiReport = {
+  content: string;
+  generatedAt: string;
+};
+
 export type SavedMatch = {
   id: string;
   date: string; // ISO
@@ -29,6 +34,8 @@ export type SavedMatch = {
   winner: string; // team name or "" for tie
   leagueId?: string;
   leagueMatchId?: string;
+  /** AI-generated shareable match report (Lovable AI). */
+  aiReport?: MatchAiReport;
 };
 
 export type MatchStore = Record<string, SavedMatch>;
@@ -74,6 +81,10 @@ export const listMatches = (): SavedMatch[] =>
   Object.values(loadMatches()).sort((a, b) => b.date.localeCompare(a.date));
 
 /** Patch a saved match in place (used by the lineup editor). */
+export const setMatchAiReport = (
+  id: string,
+  report: MatchAiReport | undefined,
+): SavedMatch | undefined => updateMatch(id, { aiReport: report });
 export const updateMatch = (
   id: string,
   patch: Partial<Omit<SavedMatch, "id">>,

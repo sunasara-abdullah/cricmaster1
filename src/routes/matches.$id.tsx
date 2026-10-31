@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Download, Pencil } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, Copy, Pencil, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/cricmaster/Navbar";
 import { Breadcrumbs } from "@/components/cricmaster/Breadcrumbs";
@@ -8,9 +9,12 @@ import {
   getMatch,
   editMatchLineup,
   deleteMatch,
+  setMatchAiReport,
   type InningsCard,
   type SavedMatch,
 } from "@/lib/matchHistory";
+import { generateMatchReport } from "@/lib/matchReport.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { rebuildStatsFromMatches } from "@/lib/playerStats";
 import { ConfirmButton } from "@/components/cricmaster/ConfirmButton";
 import { exportMatchPdf } from "@/lib/careerExport";
@@ -173,6 +177,8 @@ function ScorecardPage() {
               )}
             </header>
 
+            <AiReportCard match={match} onSaved={(m) => setMatch(m)} />
+
             <LineupEditor
               match={match}
               onSaved={(m) => setMatch(m)}
@@ -185,6 +191,149 @@ function ScorecardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+function AiReportCard({
+  match,
+  onSaved,
+}: {
+  match: SavedMatch;
+  onSaved: (m: SavedMatch) => void;
+}) {
+  const generate = useServerFn(generateMatchReport);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setSignedIn(Boolean(data.session)))
+      .catch(() => setSignedIn(false));
+  }, []);
+
+  const run = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await generate({ data: { match } });
+      if (res.ok) {
+        const updated = setMatchAiReport(match.id, {
+          content: res.content,
+          generatedAt: new Date().toISOString(),
+        });
+        if (updated) onSaved(updated);
+        toast.success("Match report ready");
+      } else {
+        setError(res.message);
+        toast.error(res.message);
+      }
+    } catch {
+      const msg = signedIn
+        ? "Report could not be generated. Please try again."
+        : "Sign in to generate an AI match report.";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copy = async () => {
+    if (!match.aiReport) return;
+    try {
+      await navigator.clipboard.writeText(match.aiReport.content);
+      toast.success("Report copied — paste it anywhere to share");
+    } catch {
+      toast.error("Copy nahi ho paya, text select karke copy karein");
+    }
+  };
+
+  if (signedIn === false && !match.aiReport) {
+    return (
+      <section className="mb-8 rounded-2xl border border-border bg-card p-4">
+        <h2 className="font-heading flex items-center gap-2 text-lg font-bold">
+          <Sparkles className="size-4 text-primary" /> AI Match Report
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Sign in to turn this scorecard into a shareable, written match report.
+        </p>
+        <Link
+          to="/auth"
+          className="mt-3 inline-block rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary-hover"
+        >
+          Sign in
+        </Link>
+      </section>
+    );
+  }
+
+  const report = match.aiReport;
+
+  return (
+    <section className="mb-8 rounded-2xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-heading flex items-center gap-2 text-lg font-bold">
+          <Sparkles className="size-4 text-primary" /> AI Match Report
+        </h2>
+        <div className="flex gap-2">
+          {report && (
+            <button
+              type="button"
+              onClick={copy}
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-bold transition-colors hover:border-primary hover:text-primary"
+            >
+              <Copy className="size-3.5" /> Copy report
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={run}
+            disabled={busy || signedIn === false}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-60"
+          >
+            {busy ? (
+              <RefreshCw className="size-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="size-3.5" />
+            )}
+            {busy ? "Writing…" : report ? "Regenerate" : "Generate report"}
+          </button>
+        </div>
+      </div>
+
+      {busy && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          The AI is writing the report from your scorecard — this usually takes
+          15–40 seconds.
+        </p>
+      )}
+
+      {error && !busy && (
+        <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+          {error}
+        </p>
+      )}
+
+      {report && !busy && (
+        <>
+          <div className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+            {report.content}
+          </div>
+          <p className="mt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+            Generated {new Date(report.generatedAt).toLocaleString()}
+          </p>
+        </>
+      )}
+
+      {!report && !busy && !error && signedIn !== false && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Turn the scorecard into a professional, shareable match report with one tap.
+        </p>
+      )}
+    </section>
   );
 }
 
