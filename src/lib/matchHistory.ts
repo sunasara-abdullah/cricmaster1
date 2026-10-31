@@ -85,7 +85,6 @@ export const setMatchAiReport = (
   id: string,
   report: MatchAiReport | undefined,
 ): SavedMatch | undefined => updateMatch(id, { aiReport: report });
-/** Patch a saved match in place (used by the lineup editor). */
 export const updateMatch = (
   id: string,
   patch: Partial<Omit<SavedMatch, "id">>,
